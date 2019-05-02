@@ -24,5 +24,5 @@
 
 # Images #
 ##########
-*.jpeg
-*.png
+cpp/*.jpeg
+cpp/*.png
