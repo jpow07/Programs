@@ -24,5 +24,6 @@
 
 # Images #
 ##########
-cpp/MediaPlayer/*.jpeg
-cpp/MediaPlayer/*.png
+*.jpeg
+*.jpg
+*.png

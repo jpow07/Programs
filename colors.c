@@ -1,4 +1,4 @@
-// Generate macros for color terminals
+//Generate macros for color terminals
 // Allows you to change color of text displaying in terminal
 //
 //
@@ -13,5 +13,7 @@
 //	   \033[38;2;0;0;255m <--- Everything after this will be blue!
 //
 //
+
+
 
 
