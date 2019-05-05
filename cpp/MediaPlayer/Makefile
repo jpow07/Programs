@@ -4,7 +4,7 @@ INCL_DIR = $(USR_DIR)/include
 LIB_DIR = $(USR_DIR)/lib
 
 #Shared Libraries (.so, .dll)
-LIBAV = -lavcodec -lavfilter -lavformat -lavutil -lswresample -lswscale -lavutil
+LIBAV = -lavcodec -lavfilter -lavformat -lavutil -lswresample -lswscale -lavutil 
 LIBOPENCV = -lopencv_core -lopencv_highgui -lopencv_imgcodecs -lopencv_imgproc -lopencv_gapi -lopencv_photo -lopencv_video -lopencv_videoio
 LDLIBS = $(LIBAV) $(LIBOPENCV)
 
@@ -31,3 +31,6 @@ main.o : main.cpp
 .PHONY: clean
 clean :
 	@rm obj/*.o
+.PHONY : run
+run :
+	@./play gohan.jpeg out.264 libx264rgb
