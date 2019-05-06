@@ -45,7 +45,7 @@ static int write_frame(AVFormatContext *fmt_ctx, const AVRational *time_base, AV
 }
 
 /* Add an output stream. */
-static void add_stream(OutputStream *ost, AVFormatContext *oc,
+static void create_stream(OutputStream *ost, AVFormatContext *oc,
                        AVCodec **codec,
                        enum AVCodecID codec_id)
 {
@@ -216,7 +216,7 @@ static void fill_yuv_image(AVFrame *pict, int frame_index,
     /* Y */
     for (y = 0; y < height; y++)
         for (x = 0; x < width; x++)
-            pict->data[0][y * pict->linesize[0] + x] = x + y + i * 3;
+            pict->data[0][y * pict->linesize[0] + x] = x * 3;
 
     /* Cb and Cr */
     for (y = 0; y < height / 2; y++) {
@@ -282,7 +282,7 @@ static int write_video_frame(AVFormatContext *oc, OutputStream *ost)
     AVPacket pkt = { 0 };
 
     c = ost->enc;
-
+// Generate Frame HERE!!
     frame = get_video_frame(ost);
 
     av_init_packet(&pkt);
@@ -367,7 +367,7 @@ int main(int argc, char **argv)
     /* Add the audio and video streams using the default format codecs
      * and initialize the codecs. */
     if (fmt->video_codec != AV_CODEC_ID_NONE) {
-        add_stream(&video_stream, oc, &video_codec, fmt->video_codec);
+        create_stream(&video_stream, oc, &video_codec, fmt->video_codec);
         have_video = 1;
         encode_video = 1;
     }
@@ -398,10 +398,17 @@ int main(int argc, char **argv)
         return 1;
     }
 
+
+
+    /* LOOP TO CAPTURE FRAME */
     while (encode_video) {
+	 // RECORDING
         /* select the stream to encode */
         if (encode_video)
-            encode_video = !write_video_frame(oc, &video_stream);
+            encode_video = (write_video_frame(oc, &video_stream) == 0)? 1: 0;
+
+	//could add audio here
+	//if(encode_audio)
     }
 
     /* Write the trailer, if any. The trailer must be written before you
