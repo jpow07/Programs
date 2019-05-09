@@ -11,17 +11,19 @@ unsigned char* createBitmapInfoHeader(int height, int width);
 
 
 int main(){
-    int height = 341;
-    int width = 753;
+    int height = 10;
+    int width = 10;
+    int vertical_resolution = 1080;
+    int horizontal_resolution = 1920;
     unsigned char image[height][width][bytesPerPixel];
-    char* imageFileName = "image.bmp";
+    char* imageFileName = "image2.bmp";
 
     int i, j;
     for(i = 0; i < height; i++){
         for(j = 0; j < width; j++){
-            image[i][j][2] = (unsigned char)((double)i/height*255); ///red
-            image[i][j][1] = (unsigned char)((double)j/width*105); ///green
-            image[i][j][0] = (unsigned char)(((double)i+j)/(height+width)*255); ///blue
+            image[i][j][2] = (unsigned char)((double)i); ///red
+            image[i][j][1] = (unsigned char)((double)j); ///green
+            image[i][j][1] = (unsigned char)(((double)i+j)); ///blue
         }
     }
 
@@ -77,17 +79,17 @@ unsigned char* createBitmapFileHeader(int height, int width, int paddingSize){
 
 unsigned char* createBitmapInfoHeader(int height, int width){
     static unsigned char infoHeader[] = {
-        0,0,0,0, /// header size
-        0,0,0,0, /// image width
-        0,0,0,0, /// image height
-        0,0, /// number of color planes
-        0,0, /// bits per pixel
-        0,0,0,0, /// compression
-        0,0,0,0, /// image size
-        0,0,0,0, /// horizontal resolution
-        0,0,0,0, /// vertical resolution
-        0,0,0,0, /// colors in color table
-        0,0,0,0, /// important color count
+        0,0,0,0, /// 0-3 header size
+        0,0,0,0, /// 4-7 image width
+        0,0,0,0, /// 8-11 image height
+        0,0, ///     12-13 number of color planes
+        0,0, ///     13-14 bits per pixel
+        0,0,0,0, /// 15-18 compression
+        0,0,0,0, /// 19-22 image size
+        0,0,0,0, /// 23-26 horizontal resolution
+        0,0,0,0, /// 27-30 vertical resolution
+        0,0,0,0, /// 31-34 colors in color table
+        0,0,0,0, /// 35-38 important color count
     };
 
     infoHeader[ 0] = (unsigned char)(infoHeaderSize);
@@ -101,6 +103,8 @@ unsigned char* createBitmapInfoHeader(int height, int width){
     infoHeader[11] = (unsigned char)(height>>24);
     infoHeader[12] = (unsigned char)(1);
     infoHeader[14] = (unsigned char)(bytesPerPixel*8);
+    
+
 
     return infoHeader;
 }

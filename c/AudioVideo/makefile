@@ -4,23 +4,30 @@ LIBAV_INCL = /usr/include/x86_64-linux-gnu/
 LIB_DIR = $(USR_DIR)/lib
 
 #Shared Libraries (.so, .dll)
-LIBAV = -lavcodec -lavfilter -lavformat -lavutil -lswresample -lswscale -lavutil 
-LIBOPENCV = -lopencv_core -lopencv_highgui -lopencv_imgcodecs -lopencv_imgproc -lopencv_gapi -lopencv_photo -lopencv_video -lopencv_videoio
-LIBC = -lpthread -lm
-LDLIBS = $(LIBAV) $(LIBOPENCV) $(LIBC)  
+LIBAV = -lavformat -lavcodec -lavutil 
+LIBC = -lx264
+LDLIBS = $(LIBAV) #$(LIBC)  
 
-# Flags (Loaded during the linking phase not the compiling phase)
-LDFLAGS = -L$(LIB_DIR) $(LDLIBS) -I$(INCL_DIR) -I$(LIBAV_INCL) 
-CXX_FLAGS = -g -Wall 
-#-Wno-deprecated-declarations -Wno-unused-variable
+# Linking Flags
+LDFLAGS = -L$(LIB_DIR) $(LDLIBS) # -I$(INCL_DIR) -I$(LIBAV_INCL) 
+
+# Compile Flags
+CXX_FLAGS = -Wall -g
 
 OBJ_DIR = obj
 
-all : muxing
+all : muxing encoder
 	
 muxing : muxing.o
-	@gcc $^ -o $@ ${LDFLAGS}
+	@gcc obj/$^ -o $@ ${LDFLAGS}
 
 
 muxing.o : muxing.c
-	@gcc $^ -c -o $@ ${CXXFLAGS}
+	@gcc $^ -c -o obj/$@ ${CXXFLAGS}
+
+encoder : encoder.o
+	@gcc obj/$^ -o $@ ${LDFLAGS}
+
+
+encoder.o : encoder.c
+	@gcc $^ -c -o obj/$@ ${CXXFLAGS}
