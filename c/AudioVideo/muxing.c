@@ -297,6 +297,7 @@ int main(int argc, char **argv)
 
     fmt = oc->oformat;
 
+
     /* 
      * Add the audio and video streams using the default format codecs
      * and initialize the codecs. 
