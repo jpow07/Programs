@@ -15,11 +15,11 @@
 
 
 typedef struct Stream{
-	AVStream *stream;
-	AVCodecContext *context;
-	AVFormatContext *format;
-	AVFrame *frame;
-	AVPacket *packet;
+	AVStream *stream;		// Stores the interleaved stream
+	AVCodecContext *context;	// Stores codec information required to encode
+	AVFrame *frame;			// Stores the uncompressed frame (image)
+	AVPacket *packet;		// Stores the compressed frame (image)
+	AVFormatContext *format;	// Stores additional metadata
 	FILE *file;
 
 } Stream;
@@ -27,6 +27,7 @@ typedef struct Stream{
 //Mocking Functions (used to generate audio and video frames)
 void makeVideoFrame(AVFrame *videoFrame, int i);
 AVFrame *makeAudioFrame();
+_Bool hasError(int return_code);
 
 static void encode(AVCodecContext *enc_ctx, AVFrame *frame, AVPacket *pkt, FILE *outfile)
 {
@@ -136,6 +137,7 @@ int main(int argc, const char* argv[]){
     frame->height = c->height;
     ret = av_frame_get_buffer(frame, 32);
     if (ret < 0) {
+	fprintf(stderr, "Error: %s\n", av_err2str(ret));
         fprintf(stderr, "Could not allocate the video frame data\n");
         exit(1);
     }
