@@ -1,5 +1,6 @@
 
 #include <cinttypes>
+#include <cstdio>
 
 // ffmpeg C libraries
 extern "C" {
@@ -19,9 +20,9 @@ public:
 	~AV_Writer();
 
 	void encodeFrame();
-	void muxPacket();
-	convertFrame(cv::Mat mat);
-
+	void writeToStream();
+	void convertFrame(cv::Mat mat);
+	void allocateFrame();
 
 private:
 	AVCodecContext 	*context; // Stores codec information

@@ -113,7 +113,6 @@ if (ret < 0) {
 }
 ```
 
-9. 
 
 10. Encode the frames into packets
 
@@ -140,5 +139,24 @@ if(!error) {
 
 
 
+## Simple Audio/Video Recorder/Player
+### Part One
+##### Library Used: 
+#### Capture Audio Frame using
 
+#### Capture Video Frame using
 
+### Part Two
+##### Library Used: ffmpeg C libraries
+
+#### Encode frames into packets 
+
+#### Write interleaved Audio and video frames  
+
+### Part Three
+##### Library Used: ffmpeg C libraries
+#### Read interleaved Audio and video frames using 
+
+#### Decode packets into frames
+
+#### Display image inside window
