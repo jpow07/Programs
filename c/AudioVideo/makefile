@@ -18,21 +18,20 @@ OBJ_DIR = obj
 
 all : prog 
 	
-muxing : muxing.o
+prog : main.o AV_Writer.o
+	@g++ obj/main.o obj/AV_Writer.o -o $@ $(LDFLAGS)
+
+main.o : main.cpp 
+	@g++ $^ -c -o obj/$@ $(CXXFLAGS)
+
+AV_Writer.o : AV_Writer.cpp
+	@g++ $^ -c -o obj/$@ $(CXXFLAGS)
+
+
+
+
+mux : muxing.o 
 	@gcc obj/$^ -o $@ $(LDFLAGS)
 
-muxing.o : muxing.c
+muxing.o : muxing.c 
 	@gcc $^ -c -o obj/$@ $(CXXFLAGS)
-
-encoder : encoder.o
-	@gcc obj/$^ -o $@ $(LDFLAGS)
-
-encoder.o : encoder.c
-	@gcc $^ -c -o obj/$@ $(CXXFLAGS)
-
-prog : main.o
-	@gcc obj/$^ -o $@ $(LDFLAGS)
-
-main.o : main.c
-	@gcc $^ -c -o obj/$@ $(CXXFLAGS)
-
