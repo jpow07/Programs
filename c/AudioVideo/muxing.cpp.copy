@@ -29,7 +29,9 @@
  * @example muxing.c
  */
 
+#include <iostream>
 
+// FFMPEG Libraries
 #define __STDC_CONSTANT_MACROS		// Allow C++ to use stdint.h C-Library
 extern "C" {
 #include <libavutil/avutil.h>
@@ -40,7 +42,14 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
-#define STREAM_DURATION   10.0
+//OpenCV Libraries
+#include <opencv2/opencv.hpp> 
+#include <opencv2/core.hpp> 
+#include <opencv2/highgui.hpp> 
+#include <opencv2/imgcodecs.hpp> 
+#include <opencv2/imgproc.hpp> 
+
+#define STREAM_DURATION   100.0
 #define STREAM_FRAME_RATE 25 /* 25 images/s */
 #define STREAM_PIX_FMT    AV_PIX_FMT_YUV420P /* default pix_fmt */
 
@@ -69,13 +78,34 @@ void constructor(Container *container, AVFormatContext *formatContext, AVCodec *
 AVFrame *alloc_image(enum AVPixelFormat pix_fmt, int width, int height);
 void open_video(AVFormatContext *oc, AVCodec *codec, Container *container,
 	       	AVDictionary *opt_arg);
+void convertMat2Frame(cv::Mat &mat, AVFrame *frame);
 void fill_yuv_image(AVFrame *pict, int frame_index, int width, int height);
 AVFrame *get_video_frame(Container *container);
-int write_video_frame(AVFormatContext *oc, Container *container);
+int write_video_frame(AVFormatContext *oc, Container *container, cv::Mat &mat);
 void destructor(AVFormatContext *oc, Container *container);
+
+using namespace cv;
 
 int main(int argc, char **argv)
 {
+
+    // OPENCV
+    //--- INITIALIZE VIDEOCAPTURE 
+    cv::VideoCapture cap; 
+    // open the default camera using default API 
+    // cap.open(0); 
+    // OR advance usage: select any API backend 
+    int deviceID = 0;             // 0 = open default camera 
+    int apiID = cv::CAP_ANY;      // 0 = autodetect default API 
+    // open selected camera using selected API 
+    cap.open(deviceID + apiID); 
+    // check if we succeeded 
+    if (!cap.isOpened()) { 
+	    std::cerr << "ERROR! Unable to open camera\n"; 
+        return -1; 
+    } 
+
+    // FFMPEG
     struct Container video_st = { 0 };
 
     const char *filename;
@@ -101,35 +131,36 @@ int main(int argc, char **argv)
 
     filename = argv[1];
 
-    /* allocate the output media context */
+    // allocate the output media context
     avformat_alloc_output_context2(&oc, NULL, NULL, filename);
     if (!oc) {
         printf("Could not deduce output format from file extension: using MPEG.\n");
 	exit(1);
         avformat_alloc_output_context2(&oc, NULL, "mpeg", filename);
     }
+
     if (!oc)
         return 1;
 
     printf("FORMAT: %s\n\n\n\n", oc->oformat->long_name);
     fmt = oc->oformat;
 
-    /* Add the audio and video streams using the default format codecs
-     * and initialize the codecs. */
+    // Add the audio and video streams using the default format codecs
+    // and initialize the codecs.
     if (fmt->video_codec != AV_CODEC_ID_NONE) {
         constructor(&video_st, oc, &video_codec);
         have_video = 1;
         encode_video = 1;
     }
 
-    /* Now that all the parameters are set, we can open the audio and
-     * video codecs and allocate the necessary encode buffers. */
+    // Now that all the parameters are set, we can open the audio and 
+    // video codecs and allocate the necessary encode buffers.
     if (have_video)
         open_video(oc, video_codec, &video_st, opt);
 
     av_dump_format(oc, 0, filename, 1);
 
-    /* open the output file, if needed */
+    // open the output file, if needed
     if (!(fmt->flags & AVFMT_NOFILE)) {
         ret = avio_open(&oc->pb, filename, AVIO_FLAG_WRITE);
         if (ret < 0) {
@@ -138,34 +169,54 @@ int main(int argc, char **argv)
         }
     }
 
-    /* Write the stream header, if any. */
+    // Write the stream header, if any.
     ret = avformat_write_header(oc, &opt);
     if (ret < 0) {
         fprintf(stderr, "Error occurred when opening output file\n");
         return 1;
     }
 
+ 
+    //--- GRAB AND WRITE LOOP 
+    std::cout << "Start grabbing" << "\n" 
+	    << "Press any key to terminate" << std::endl; 
+    cv::Mat mat; 
+    encode_video = 1;
     while (encode_video) {
-            encode_video = !write_video_frame(oc, &video_st);
-    }
 
-    /* Write the trailer, if any. The trailer must be written before you
-     * close the CodecContexts open when you wrote the header; otherwise
-     * av_write_trailer() may try to use memory that was freed on
-     * av_codec_close(). */
+        // wait for a new frame from camera and store it into 'frame' 
+        cap >> mat; 
+
+        // show live and wait for a key with timeout long enough to show images 
+	cv::imshow("Live", mat); 
+
+	std::cout << "Writing video frame" << std::endl;
+        write_video_frame(oc, &video_st, mat);
+
+        // check if we succeeded 
+        if (mat.empty()) { 
+		std::cerr << "ERROR! blank frame grabbed\n"; 
+            break; 
+        } 
+
+        if (waitKey(5) >= 0) 
+		encode_video = 0; // Stop Running
+	else
+		encode_video = 1; // Keep Running
+    } 
+
     av_write_trailer(oc);
 
-    /* Close each codec. */
+    // Close each codec. 
     if (have_video)
         destructor(oc, &video_st);
 
     if (!(fmt->flags & AVFMT_NOFILE))
-        /* Close the output file. */
+        // Close the output file.
         avio_closep(&oc->pb);
 
-    /* free the stream */
+    // free the stream 
     avformat_free_context(oc);
-
     return 0;
 }
 
@@ -293,9 +344,8 @@ void open_video(AVFormatContext *oc, AVCodec *codec, Container *container, AVDic
         exit(1);
     }
 
-    /* If the output format is not YUV420P, then a temporary YUV420P
-     * picture is needed too. It is then converted to the required
-     * output format. */
+    // If the output format is not YUV420P, then a temporary YUV420P
+    // picture is needed too. It is then converted to the required output format.
     container->tmp_frame = NULL;
     if (context->pix_fmt != AV_PIX_FMT_YUV420P) {
         container->tmp_frame = alloc_image(AV_PIX_FMT_YUV420P, context->width, context->height);
@@ -305,7 +355,7 @@ void open_video(AVFormatContext *oc, AVCodec *codec, Container *container, AVDic
         }
     }
 
-    /* copy the stream parameters to the muxer */
+    // copy the stream parameters to the muxer
     ret = avcodec_parameters_from_context(container->stream->codecpar, context);
     if (ret < 0) {
         fprintf(stderr, "Could not copy the stream parameters\n");
@@ -313,7 +363,7 @@ void open_video(AVFormatContext *oc, AVCodec *codec, Container *container, AVDic
     }
 }
 
-/* Prepare a dummy image. */
+// Prepare a dummy image.
 void fill_yuv_image(AVFrame *pict, int frame_index,
                            int width, int height)
 {
@@ -321,12 +371,12 @@ void fill_yuv_image(AVFrame *pict, int frame_index,
 
     i = frame_index;
 
-    /* Y */
+    // Y
     for (y = 0; y < height; y++)
         for (x = 0; x < width; x++)
             pict->data[0][y * pict->linesize[0] + x] = x + y + i * 3;
 
-    /* Cb and Cr */
+    // Cb and Cr
     for (y = 0; y < height / 2; y++) {
         for (x = 0; x < width / 2; x++) {
             pict->data[1][y * pict->linesize[1] + x] = 128 + y + i * 2;
@@ -335,23 +385,35 @@ void fill_yuv_image(AVFrame *pict, int frame_index,
     }
 }
 
-AVFrame *get_video_frame(Container *container)
-{
+void convertMat2Frame(cv::Mat &mat, AVFrame *frame) {
+	//Convert a 3D array into a 1D array
+	for(int i = 0; i < mat.size().height; i++ ) {
+		for(int j = 0; j < mat.size().width; j++) {
+			for(int k = 0; k < 3; k++) {
+				cv::Vec3b pixel = mat.at<cv::Vec3b>(i, j); 
+				int pixel_position = (i * mat.size().width) + j;
+				frame->data[0][pixel_position * 3 + k] = pixel.val[k];
+			}
+		}	
+	}	
+}
+
+AVFrame *get_video_frame(Container *container) {
     AVCodecContext *context = container->encoder;
 
-    /* check if we want to generate more frames */
+    // check if there are more frames
     if (av_compare_ts(container->next_pts, context->time_base,
                       STREAM_DURATION, (AVRational){ 1, 1 }) >= 0)
         return NULL;
 
-    /* when we pass a frame to the encoder, it may keep a reference to it
-     * internally; make sure we do not overwrite it here */
+    // when we pass a frame to the encoder, it may keep a reference to it
+    // internally; make sure we do not overwrite it here 
     if (av_frame_make_writable(container->frame) < 0)
         exit(1);
 
     if (context->pix_fmt != AV_PIX_FMT_YUV420P) {
-        /* as we only generate a YUV420P picture, we must convert it
-         * to the codec pixel format if needed */
+        // as we only generate a YUV420P picture, we must convert it
+        // to the codec pixel format if needed
         if (!container->sws_ctx) {
             container->sws_ctx = sws_getContext(context->width, context->height,
                                           AV_PIX_FMT_YUV420P,
@@ -381,7 +443,7 @@ AVFrame *get_video_frame(Container *container)
  * encode one video frame and send it to the muxer
  * return 1 when encoding is finished, 0 otherwise
  */
-int write_video_frame(AVFormatContext *oc, Container *container)
+int write_video_frame(AVFormatContext *oc, Container *container, cv::Mat &mat)
 {
     int ret;
     AVCodecContext *context;
@@ -391,7 +453,9 @@ int write_video_frame(AVFormatContext *oc, Container *container)
 
     context = container->encoder;
 
-    frame = get_video_frame(container);
+    std::cout << "Converting Mat to Frame" << std::endl;
+    convertMat2Frame(mat, container->frame);
+    container->frame->pts = container->next_pts++;
 
     av_init_packet(&pkt);
 
