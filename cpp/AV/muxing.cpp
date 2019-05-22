@@ -30,6 +30,7 @@
  * @example muxing.c
  */
 #define __STDC_CONSTANT_MACROS
+
 extern "C" {
 #include <stdlib.h>
 #include <stdio.h>
@@ -42,7 +43,6 @@ extern "C" {
 #include <libavutil/timestamp.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
-#include <libswresample/swresample.h>
 }
 
 //OpenCV Libraries
@@ -69,7 +69,6 @@ typedef struct OutputStream {
     AVFrame *tmp_frame;
     float t, tincr, tincr2;
     struct SwsContext *sws_ctx;
-    struct SwrContext *swr_ctx;
 } OutputStream;
 
 
@@ -307,12 +306,16 @@ void cvMat2AVFrame(cv::Mat &mat, AVFrame *frame, int width, int height) {
     av_frame_free(&ost->frame);
     av_frame_free(&ost->tmp_frame);
     sws_freeContext(ost->sws_ctx);
-    swr_free(&ost->swr_ctx);
 }
 /**************************************************************/
 /* media file output */
 int main(int argc, char **argv)
 {
+
+    if (argc < 2) {
+        printf("usage: %s [FILE]\n", argv[0]);
+        return 1;
+    }
 
     cv::VideoCapture cap;
     cv::Mat mat;
@@ -335,22 +338,14 @@ int main(int argc, char **argv)
     int encode_video = 0;
     AVDictionary *opt = NULL;
     int i;
-    if (argc < 2) {
-        printf("usage: %s output_file\n"
-               "API example program to output a media file with libavformat.\n"
-               "This program generates a synthetic video stream, encodes and\n"
-               "muxes them into a file named output_file.\n"
-               "The output format is automatically guessed according to the file extension.\n"
-               "Raw images can also be output by using '%%d' in the filename.\n"
-               "\n", argv[0]);
-        return 1;
-    }
+
+
     filename = argv[1];
     for (i = 2; i+1 < argc; i+=2) {
         if (!strcmp(argv[i], "-flags") || !strcmp(argv[i], "-fflags"))
             av_dict_set(&opt, argv[i]+1, argv[i+1], 0);
     }
-    /* allocate the output media context */
+
     avformat_alloc_output_context2(&oc, NULL, NULL, filename);
     if (!oc) {
         printf("Could not deduce output format from file extension: using MPEG.\n");
@@ -359,8 +354,7 @@ int main(int argc, char **argv)
     if (!oc)
         return 1;
     fmt = oc->oformat;
-    /* Add the video streams using the default format codecs
-     * and initialize the codecs. */
+
     if (fmt->video_codec != AV_CODEC_ID_NONE) {
         add_stream(&video_st, oc, &video_codec, fmt->video_codec, cap);
 	std::cout << "Context Settings: \n"
@@ -370,13 +364,11 @@ int main(int argc, char **argv)
         encode_video = 1;
     }
 
-    /* Now that all the parameters are set, we can open the 
-     * video codecs and allocate the necessary encode buffers. */
     if (have_video)
         open_video(oc, video_codec, &video_st, opt);
 
     av_dump_format(oc, 0, filename, 1);
-    /* open the output file, if needed */
+
     if (!(fmt->flags & AVFMT_NOFILE)) {
         ret = avio_open(&oc->pb, filename, AVIO_FLAG_WRITE);
         if (ret < 0) {
@@ -384,7 +376,7 @@ int main(int argc, char **argv)
             return 1;
         }
     }
-    /* Write the stream header, if any. */
+
     ret = avformat_write_header(oc, &opt);
     if (ret < 0) {
         fprintf(stderr, "Error occurred when opening output file\n");
@@ -399,19 +391,16 @@ int main(int argc, char **argv)
             encode_video = !write_video_frame(oc, &video_st, mat);
     }
 
-    /* Write the trailer, if any. The trailer must be written before you
-     * close the CodecContexts open when you wrote the header; otherwise
-     * av_write_trailer() may try to use memory that was freed on
-     * av_codec_close(). */
     av_write_trailer(oc);
-    /* Close each codec. */
+
     if (have_video)
         close_stream(oc, &video_st);
+
     if (!(fmt->flags & AVFMT_NOFILE))
-        /* Close the output file. */
         avio_closep(&oc->pb);
-    /* free the stream */
+
     avformat_free_context(oc);
+
     return 0;
 }
 
