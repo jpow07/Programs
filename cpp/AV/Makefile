@@ -21,7 +21,6 @@ CXX_FLAGS = -Wall -g
 OBJ_DIR = obj
 
 all : muxer
-	
 
 muxer : muxing.o 
 	@echo Loading muxer executable

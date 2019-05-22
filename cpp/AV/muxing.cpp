@@ -52,12 +52,12 @@ extern "C" {
 #include <opencv2/imgcodecs.hpp> 
 #include <opencv2/imgproc.hpp> 
 
-#define STREAM_DURATION   100.0
 #define STREAM_FRAME_RATE 10 /* 25 images/s */
 #define STREAM_PIX_FMT    AV_PIX_FMT_BGR24 /* default pix_fmt */
 
 #define SCALE_FLAGS SWS_BICUBIC
 #define VIDEO_CODEC "libx264rgb"
+
 // a wrapper around a single output AVStream
 typedef struct OutputStream {
     AVStream *st;
@@ -73,7 +73,7 @@ typedef struct OutputStream {
 } OutputStream;
 
 
-static int write_frame(AVFormatContext *fmt_ctx, const AVRational *time_base, AVStream *st, AVPacket *pkt)
+ int write_frame(AVFormatContext *fmt_ctx, const AVRational *time_base, AVStream *st, AVPacket *pkt)
 {
     /* rescale output packet timestamp values from codec to stream timebase */
     av_packet_rescale_ts(pkt, *time_base, st->time_base);
@@ -82,7 +82,7 @@ static int write_frame(AVFormatContext *fmt_ctx, const AVRational *time_base, AV
     return av_interleaved_write_frame(fmt_ctx, pkt);
 }
 /* Add an output stream. */
-static void add_stream(OutputStream *ost, AVFormatContext *oc,
+ void add_stream(OutputStream *ost, AVFormatContext *oc,
                        AVCodec **codec,
                        enum AVCodecID codec_id, cv::VideoCapture cap)
 {
@@ -137,7 +137,7 @@ static void add_stream(OutputStream *ost, AVFormatContext *oc,
 }
 /**************************************************************/
 /* video output */
-static AVFrame *alloc_picture(enum AVPixelFormat pix_fmt, int width, int height)
+ AVFrame *alloc_picture(enum AVPixelFormat pix_fmt, int width, int height)
 {
     AVFrame *picture;
     int ret;
@@ -155,7 +155,7 @@ static AVFrame *alloc_picture(enum AVPixelFormat pix_fmt, int width, int height)
     }
     return picture;
 }
-static void open_video(AVFormatContext *oc, AVCodec *codec, OutputStream *ost, AVDictionary *opt_arg)
+ void open_video(AVFormatContext *oc, AVCodec *codec, OutputStream *ost, AVDictionary *opt_arg)
 {
     int ret;
     AVCodecContext *c = ost->enc;
@@ -204,7 +204,7 @@ void cvMat2AVFrame(cv::Mat &mat, AVFrame *frame, int width, int height) {
 	}	
 }
 /* Prepare a dummy image. */
-static void create_RGB_frame(AVFrame *frame, int frame_index, int width, int height)
+ void create_RGB_frame(AVFrame *frame, int frame_index, int width, int height)
 {
 	unsigned char val = 255;
 	//Convert a 3D array into a 1D array
@@ -232,7 +232,7 @@ static void create_RGB_frame(AVFrame *frame, int frame_index, int width, int hei
 	}
 */
 }
-static AVFrame *get_video_frame(OutputStream *ost, cv::Mat mat)
+ AVFrame *get_video_frame(OutputStream *ost, cv::Mat mat)
 {
     AVCodecContext *c = ost->enc;
 
@@ -268,7 +268,7 @@ static AVFrame *get_video_frame(OutputStream *ost, cv::Mat mat)
  * encode one video frame and send it to the muxer
  * return 1 when encoding is finished, 0 otherwise
  */
-static int write_video_frame(AVFormatContext *oc, OutputStream *ost, cv::Mat mat)
+ int write_video_frame(AVFormatContext *oc, OutputStream *ost, cv::Mat mat)
 {
     int ret;
     AVCodecContext *context;
@@ -301,7 +301,7 @@ static int write_video_frame(AVFormatContext *oc, OutputStream *ost, cv::Mat mat
     }
     return (frame || got_packet) ? 0 : 1;
 }
-static void close_stream(AVFormatContext *oc, OutputStream *ost)
+ void close_stream(AVFormatContext *oc, OutputStream *ost)
 {
     avcodec_free_context(&ost->enc);
     av_frame_free(&ost->frame);
