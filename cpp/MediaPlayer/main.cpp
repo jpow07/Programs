@@ -45,7 +45,6 @@ int main(int argc, char* argv[]){
 
 
 	const char *filename;
-	const char *codec_name;
 	const AVCodec *codec;
 	AVCodecContext *c = NULL;
 
@@ -55,9 +54,8 @@ int main(int argc, char* argv[]){
 	uint8_t endcode[] = {0, 0, 1, 0xb7};
 
 	filename = argv[2];
-	codec_name = argv[3];
-
-	codec = avcodec_find_encoder_by_name(codec_name);
+	std::string codec_name = "libx264rgb";
+	codec = avcodec_find_encoder_by_name(codec_name.c_str());
 	if(!codec){
 		printf("Codec not found\n");
 		return 1;
@@ -103,6 +101,7 @@ int main(int argc, char* argv[]){
 	std::cout << "AVFrame Resolution: " << frame->width << "x" << frame->height << "\n" 
 		<< "LineSize: " << frame->linesize[0] << "\n" 
 		<< "Format: " << frame->format << std::endl;
+
 
 	convertMat2Frame(mat, frame); 
 
@@ -171,11 +170,10 @@ static void convertMat2Frame(cv::Mat &mat, AVFrame *frame) {
 			for(int k = 0; k < 3; k++) {
 				cv::Vec3b pixel = mat.at<cv::Vec3b>(i, j); 
 				int pixel_position = (i * mat.size().width) + j;
-				frame->data[0][pixel_position * 3 + k] = pixel.val[k];
+				frame->data[0][pixel_position * 3 + k] = (uint8_t) pixel.val[k];
 			}
 		}	
 	}	
-
 }
 
 

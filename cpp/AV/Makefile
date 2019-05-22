@@ -4,7 +4,7 @@ LIBAV_INCL = /usr/include/x86_64-linux-gnu/
 LIB_DIR = $(USR_DIR)/lib
 
 #Compiler Version
-CPP_STD = -std=c++11
+CSTD = -std=c++11
 
 #Shared Libraries (.so, .dll)
 LIBAV = -lavformat -lavcodec -lavutil -lswscale -lswresample
@@ -20,20 +20,8 @@ CXX_FLAGS = -Wall -g
 
 OBJ_DIR = obj
 
-all : AVRecorder muxer
+all : muxer
 	
-AVRecorder : main.o VideoWriter.o
-	@echo Linking Translation Units 
-	@echo Loading AVRecorder executable
-	@g++ obj/main.o obj/VideoWriter.o -o $@ $(LDFLAGS)
-
-main.o : main.cpp 
-	@echo Compiling main.cpp
-	@g++ $^ -c -o obj/$@ $(CXXFLAGS)
-
-VideoWriter.o : VideoWriter.cpp
-	@echo Compiling VideoWriter.cpp
-	@g++ $^ -c -o obj/$@ $(CXXFLAGS)
 
 muxer : muxing.o 
 	@echo Loading muxer executable
@@ -41,18 +29,10 @@ muxer : muxing.o
 
 muxing.o : muxing.cpp
 	@echo Compiling muxing.cpp
-	@g++ $^ -c -o obj/$@ $(CXXFLAGS) $(CPP_STD)
-
-a : mux.o 
-	@echo Loading muxer executable
-	@gcc obj/$^ -o $@ $(LDFLAGS)
-
-mux.o : mux.c 
-	@echo Compiling muxing.c
-	@gcc $^ -c -o obj/$@ $(CXXFLAGS)
+	@g++ $^ -c -o obj/$@ $(CXXFLAGS) $(CSTD)
 
 .PHONY : clean
 
 clean :
 	@echo cleaning up project
-	@rm -f prog muxer $(OBJ_DIR)/*.o AVRecorder a muxer *.mp4 *.avi *.mkv
+	@rm -f muxer $(OBJ_DIR)/*.o muxer *.mp4 *.avi *.mkv
