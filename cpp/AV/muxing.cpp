@@ -30,7 +30,6 @@ extern "C" {
 #include <libavutil/mathematics.h>
 #include <libavutil/timestamp.h>
 #include <libavformat/avformat.h>
-#include <libswscale/swscale.h>
 }
 
 //OpenCV Libraries
@@ -47,6 +46,148 @@ extern "C" {
 #define VIDEO_CODEC "libx264rgb"
 #define USING_H264 1
 
+/*
+namespace libav {
+
+	class AVWriter {
+	public:
+		AVWriter();
+		~AVWriter();
+
+		bool writeFrame(AVFrame *frame);
+		bool writeFrame(cv::Mat &mat);
+
+
+	private:
+    		AVOutputFormat *outputFormat;
+    		AVFormatContext *outputContext;
+    		AVCodec *videoCodec;
+
+		VideoEncoder videoStream;
+		AudioEncoder audioStream;
+
+		bool hasVideo;
+		bool hasAudio;
+
+	};
+
+
+	class VideoEncoder {
+	public:
+		VideoWriter();
+		~VideoWriter();
+
+		bool encodeFrame();
+
+	private:
+		AVStream *stream;
+		AVCodecContext *encoder;
+		AVFrame *frame;
+		AVPacket *packet;
+		int64_t next_pts;
+		
+
+	};
+
+
+
+	class AudioEncoder {
+	public:
+		AudioWriter();
+		~AudioWriter();
+
+		bool encodeFrame();
+
+	private:
+		AVStream *stream;
+		AVCodecContext *encoder;
+		AVFrame *frame;
+		AVPacket *packet;
+		int64_t next_pts;
+
+	};
+
+	class AVReader {
+	public:
+		AVWriter();
+		~AVWriter();
+
+		bool writeFrame(AVFrame *frame);
+		bool writeFrame(cv::Mat &mat);
+
+
+	private:
+    		AVOutputFormat *outputFormat;
+    		AVFormatContext *outputContext;
+    		AVCodec *videoCodec;
+
+		VideoEncoder videoStream;
+		AudioEncoder audioStream;
+
+		bool hasVideo;
+		bool hasAudio;
+
+	};
+
+
+	class VideoDecoder {
+	public:
+		VideoWriter();
+		~VideoWriter();
+
+		bool encodeFrame();
+
+	private:
+		AVStream *stream;
+		AVCodecContext *encoder;
+		AVFrame *frame;
+		AVPacket *packet;
+		int64_t next_pts;
+		
+
+	};
+
+
+	class AudioDecoder {
+	public:
+		AudioWriter();
+		~AudioWriter();
+
+		bool encodeFrame();
+
+	private:
+		AVStream *stream;
+		AVCodecContext *encoder;
+		AVFrame *frame;
+		AVPacket *packet;
+		int64_t next_pts;
+
+	};
+}
+*/
+
+/*
+libav::VideoEncoder::VideoEncoder()
+{
+
+    c->bit_rate = 400000;
+    c->width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
+    c->height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
+    stream->time_base = (AVRational){ 1, STREAM_FRAME_RATE };
+    c->time_base = ost->st->time_base;
+    c->gop_size = 12; 
+    c->pix_fmt = STREAM_PIX_FMT;
+
+}
+
+libav::VideoWriter::~VideoWriter()
+{
+    avcodec_free_context(&ost->enc);
+    av_frame_free(&ost->frame);
+}
+
+*/
+
 // a wrapper around a single output AVStream
 typedef struct OutputStream {
     AVStream *st;
@@ -56,12 +197,10 @@ typedef struct OutputStream {
 
     AVFrame *frame;
 
-    struct SwsContext *sws_ctx;
-
 } OutputStream;
 
 
-int write_frame(AVFormatContext *fmt_ctx, const AVRational *time_base, 
+int writeFrame(AVFormatContext *fmt_ctx, const AVRational *time_base, 
 		AVStream *st, AVPacket *pkt) {
 
     av_packet_rescale_ts(pkt, *time_base, st->time_base);
@@ -92,7 +231,7 @@ void open_stream(OutputStream *ost, AVFormatContext *oc, AVCodec **codec,
         exit(1);
     }
 
-    ost->st->id = oc->nb_streams - 1;
+    //ost->st->id = oc->nb_streams - 1;
     c = avcodec_alloc_context3(*codec);
 
     if (!c) {
@@ -188,7 +327,7 @@ AVFrame *convertMatToFrame(OutputStream *ost, cv::Mat mat) {
    return ost->frame ;
 }
 
-int write_video_frame(AVFormatContext *oc, OutputStream *ost, cv::Mat mat) {
+int encodeVideoFrame(AVFormatContext *oc, OutputStream *ost, cv::Mat mat) {
     int ret;
     AVCodecContext *context;
     AVFrame *frame;
@@ -208,7 +347,7 @@ int write_video_frame(AVFormatContext *oc, OutputStream *ost, cv::Mat mat) {
     got_packet = !avcodec_receive_packet(context, &pkt);
 
     if (got_packet) {
-        ret = write_frame(oc, &context->time_base, ost->st, &pkt);
+        ret = writeFrame(oc, &context->time_base, ost->st, &pkt);
     } else {
         ret = 0;
     }
@@ -225,8 +364,6 @@ void destructor(AVFormatContext *oc, OutputStream *ost)
 {
     avcodec_free_context(&ost->enc);
     av_frame_free(&ost->frame);
-    //av_frame_free(&ost->tmp_frame);
-    sws_freeContext(ost->sws_ctx);
 }
 
 int main(int argc, char **argv) {
@@ -279,9 +416,12 @@ int main(int argc, char **argv) {
 
     if (have_video)
         open_video(oc, video_codec, &video_st, opt);
+    //VideoEncoder Class
+    //AudioEncoder Class
 
     av_dump_format(oc, 0, filename, 1);
 
+    //AVWriterClass
     if (!(fmt->flags & AVFMT_NOFILE)) {
         ret = avio_open(&oc->pb, filename, AVIO_FLAG_WRITE);
         if (ret < 0) {
@@ -296,6 +436,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    //AVWriter Capture Audio and Video
     while (encode_video) {
 	    cap >> mat;
 	    imshow("Live", mat);
@@ -303,17 +444,25 @@ int main(int argc, char **argv) {
 	    if(cv::waitKey(5) >= 0)
 		    break;
 
-            encode_video = !write_video_frame(oc, &video_st, mat);
+	    //AVWriter::writeFrame()
+	    //VideoEncoder::encodeFrame()
+            encode_video = !encodeVideoFrame(oc, &video_st, mat);
     }
 
-    av_write_trailer(oc);
+    //AudioEncoder.SendFrames()
 
+
+
+    //VideoEncoder Destructor
     if (have_video)
         destructor(oc, &video_st);
 
+    //AVWriter Close Stream
+    av_write_trailer(oc);
     if (!(fmt->flags & AVFMT_NOFILE))
         avio_closep(&oc->pb);
 
+    //AVWriter ~Destructor
     avformat_free_context(oc);
 
     return 0;
