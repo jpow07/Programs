@@ -6,6 +6,7 @@ An AVFrame is a raw frame that can be encoded into an AVPacket.
 The AVPacket is written to a digital container by interleaving the audio and video into
 one stream.
 
+
 0. Define Variable/Structs
 
 ```
