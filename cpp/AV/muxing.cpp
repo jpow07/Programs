@@ -46,156 +46,15 @@ extern "C" {
 #define VIDEO_CODEC "libx264rgb"
 #define USING_H264 1
 
-/*
-namespace libav {
-
-	class AVWriter {
-	public:
-		AVWriter();
-		~AVWriter();
-
-		bool writeFrame(AVFrame *frame);
-		bool writeFrame(cv::Mat &mat);
-
-
-	private:
-    		AVOutputFormat *outputFormat;
-    		AVFormatContext *outputContext;
-    		AVCodec *videoCodec;
-
-		VideoEncoder videoStream;
-		AudioEncoder audioStream;
-
-		bool hasVideo;
-		bool hasAudio;
-
-	};
-
-
-	class VideoEncoder {
-	public:
-		VideoWriter();
-		~VideoWriter();
-
-		bool encodeFrame();
-
-	private:
-		AVStream *stream;
-		AVCodecContext *encoder;
-		AVFrame *frame;
-		AVPacket *packet;
-		int64_t next_pts;
-		
-
-	};
-
-
-
-	class AudioEncoder {
-	public:
-		AudioWriter();
-		~AudioWriter();
-
-		bool encodeFrame();
-
-	private:
-		AVStream *stream;
-		AVCodecContext *encoder;
-		AVFrame *frame;
-		AVPacket *packet;
-		int64_t next_pts;
-
-	};
-
-	class AVReader {
-	public:
-		AVWriter();
-		~AVWriter();
-
-		bool writeFrame(AVFrame *frame);
-		bool writeFrame(cv::Mat &mat);
-
-
-	private:
-    		AVOutputFormat *outputFormat;
-    		AVFormatContext *outputContext;
-    		AVCodec *videoCodec;
-
-		VideoEncoder videoStream;
-		AudioEncoder audioStream;
-
-		bool hasVideo;
-		bool hasAudio;
-
-	};
-
-
-	class VideoDecoder {
-	public:
-		VideoWriter();
-		~VideoWriter();
-
-		bool encodeFrame();
-
-	private:
-		AVStream *stream;
-		AVCodecContext *encoder;
-		AVFrame *frame;
-		AVPacket *packet;
-		int64_t next_pts;
-		
-
-	};
-
-
-	class AudioDecoder {
-	public:
-		AudioWriter();
-		~AudioWriter();
-
-		bool encodeFrame();
-
-	private:
-		AVStream *stream;
-		AVCodecContext *encoder;
-		AVFrame *frame;
-		AVPacket *packet;
-		int64_t next_pts;
-
-	};
-}
-*/
-
-/*
-libav::VideoEncoder::VideoEncoder()
-{
-
-    c->bit_rate = 400000;
-    c->width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
-    c->height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
-    stream->time_base = (AVRational){ 1, STREAM_FRAME_RATE };
-    c->time_base = ost->st->time_base;
-    c->gop_size = 12; 
-    c->pix_fmt = STREAM_PIX_FMT;
-
-}
-
-libav::VideoWriter::~VideoWriter()
-{
-    avcodec_free_context(&ost->enc);
-    av_frame_free(&ost->frame);
-}
-
-*/
 
 // a wrapper around a single output AVStream
 typedef struct OutputStream {
-    AVStream *st;
-    AVCodecContext *enc;
+	AVStream *st;
+	AVCodecContext *enc;
 
-    int64_t next_pts;
+	int64_t next_pts;
 
-    AVFrame *frame;
+	AVFrame *frame;
 
 } OutputStream;
 
@@ -203,268 +62,268 @@ typedef struct OutputStream {
 int writeFrame(AVFormatContext *fmt_ctx, const AVRational *time_base, 
 		AVStream *st, AVPacket *pkt) {
 
-    av_packet_rescale_ts(pkt, *time_base, st->time_base);
-    pkt->stream_index = st->index;
-    return av_interleaved_write_frame(fmt_ctx, pkt);
+	av_packet_rescale_ts(pkt, *time_base, st->time_base);
+	pkt->stream_index = st->index;
+	return av_interleaved_write_frame(fmt_ctx, pkt);
 }
 
 void open_stream(OutputStream *ost, AVFormatContext *oc, AVCodec **codec,
-	       	enum AVCodecID codec_id, cv::VideoCapture cap) {
+		enum AVCodecID codec_id, cv::VideoCapture cap) {
 
-    AVCodecContext *c;
-    int i;
+	AVCodecContext *c;
+	int i;
 
-    if (USING_H264) {
-    	*codec = avcodec_find_encoder_by_name("libx264rgb");
-    } else {
-    	*codec = avcodec_find_encoder(codec_id);
-    }
-    if (!(*codec)) {
-        fprintf(stderr, "Could not find encoder for '%s'\n", avcodec_get_name(codec_id));
-        exit(1);
-    }
+	if (USING_H264) {
+		*codec = avcodec_find_encoder_by_name("libx264rgb");
+	} else {
+		*codec = avcodec_find_encoder(codec_id);
+	}
+	if (!(*codec)) {
+		fprintf(stderr, "Could not find encoder for '%s'\n", avcodec_get_name(codec_id));
+		exit(1);
+	}
 
 
-    ost->st = avformat_new_stream(oc, NULL);
-    if (!ost->st) {
-        fprintf(stderr, "Could not allocate stream\n");
-        exit(1);
-    }
+	ost->st = avformat_new_stream(oc, NULL);
+	if (!ost->st) {
+		fprintf(stderr, "Could not allocate stream\n");
+		exit(1);
+	}
 
-    //ost->st->id = oc->nb_streams - 1;
-    c = avcodec_alloc_context3(*codec);
+	//ost->st->id = oc->nb_streams - 1;
+	c = avcodec_alloc_context3(*codec);
 
-    if (!c) {
-        fprintf(stderr, "Could not alloc an encoding context\n");
-        exit(1);
-    }
-    
-    
-    if (USING_H264) {
-    	c->codec_id = AV_CODEC_ID_H264;
-        av_opt_set(c->priv_data, "preset", "veryfast", 0);	
-    }
+	if (!c) {
+		fprintf(stderr, "Could not alloc an encoding context\n");
+		exit(1);
+	}
 
-    c->bit_rate = 400000;
-    c->width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
-    c->height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
-    ost->st->time_base = (AVRational){ 1, STREAM_FRAME_RATE };
-    c->time_base = ost->st->time_base;
-    c->gop_size = 12; 
-    c->pix_fmt = STREAM_PIX_FMT;
 
-    if (oc->oformat->flags & AVFMT_GLOBALHEADER)
-        c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+	if (USING_H264) {
+		c->codec_id = AV_CODEC_ID_H264;
+		av_opt_set(c->priv_data, "preset", "veryfast", 0);	
+	}
 
-    ost->enc = c;
+	c->bit_rate = 400000;
+	c->width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
+	c->height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
+	ost->st->time_base = (AVRational){ 1, STREAM_FRAME_RATE };
+	c->time_base = ost->st->time_base;
+	c->gop_size = 12; 
+	c->pix_fmt = STREAM_PIX_FMT;
+
+	if (oc->oformat->flags & AVFMT_GLOBALHEADER)
+		c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+
+	ost->enc = c;
 }
 
 AVFrame *allocFrame(enum AVPixelFormat pix_fmt, int width, int height) {
 
-    AVFrame *frame;
-    int ret;
+	AVFrame *frame;
+	int ret;
 
-    frame = av_frame_alloc();
-    if (!frame)
-        return NULL;
+	frame = av_frame_alloc();
+	if (!frame)
+		return NULL;
 
-    frame->format = pix_fmt;
-    frame->width  = width;
-    frame->height = height;
+	frame->format = pix_fmt;
+	frame->width  = width;
+	frame->height = height;
 
-    ret = av_frame_get_buffer(frame, 32);
-    if (ret < 0) {
-        fprintf(stderr, "Could not allocate frame data.\n");
-        exit(1);
-    }
+	ret = av_frame_get_buffer(frame, 32);
+	if (ret < 0) {
+		fprintf(stderr, "Could not allocate frame data.\n");
+		exit(1);
+	}
 
-    return frame;
+	return frame;
 }
 
 void open_video(AVFormatContext *oc, AVCodec *codec, OutputStream *ost, AVDictionary *opt_arg) {
-    int ret;
-    AVCodecContext *c = ost->enc;
-    AVDictionary *opt = NULL;
-    av_dict_copy(&opt, opt_arg, 0);
-    ret = avcodec_open2(c, codec, &opt);
-    av_dict_free(&opt);
+	int ret;
+	AVCodecContext *c = ost->enc;
+	AVDictionary *opt = NULL;
+	av_dict_copy(&opt, opt_arg, 0);
+	ret = avcodec_open2(c, codec, &opt);
+	av_dict_free(&opt);
 
-    if (ret < 0) {
-        fprintf(stderr, "Could not open video codec\n");
-        exit(1);
-    }
+	if (ret < 0) {
+		fprintf(stderr, "Could not open video codec\n");
+		exit(1);
+	}
 
-    ost->frame = allocFrame(c->pix_fmt, c->width, c->height);
-    if (!ost->frame) {
-        fprintf(stderr, "Could not allocate video frame\n");
-        exit(1);
-    }
+	ost->frame = allocFrame(c->pix_fmt, c->width, c->height);
+	if (!ost->frame) {
+		fprintf(stderr, "Could not allocate video frame\n");
+		exit(1);
+	}
 
-    ret = avcodec_parameters_from_context(ost->st->codecpar, c);
-    if (ret < 0) {
-        fprintf(stderr, "Could not copy the stream parameters\n");
-        exit(1);
-    }
+	ret = avcodec_parameters_from_context(ost->st->codecpar, c);
+	if (ret < 0) {
+		fprintf(stderr, "Could not copy the stream parameters\n");
+		exit(1);
+	}
 }
 
 AVFrame *convertMatToFrame(OutputStream *ost, cv::Mat mat) {
 
-    if (av_frame_make_writable(ost->frame) < 0)
-        exit(1);
-	
-    int subpixel = 3; //number of pixels RGB = 3 RGBA = 4
-    for(int i = 0; i < ost->enc->height ; i++ ) {
- 	for(int j = 0; j < ost->enc->width; j++) {
-            for(int k = 0; k < subpixel; k++) {
-		cv::Vec3b pixel = mat.at<cv::Vec3b>(i, j); 
-		int pixelPos = (i * ost->enc->width) + j;
-		ost->frame->data[0][pixelPos * subpixel + k] = (unsigned char) pixel.val[k];
-     	    }
-	}	
-    }	
+	if (av_frame_make_writable(ost->frame) < 0)
+		exit(1);
 
-   ost->frame->pts = ost->next_pts++;
-   return ost->frame ;
+	int subpixel = 3; //number of pixels RGB = 3 RGBA = 4
+	for(int i = 0; i < ost->enc->height ; i++ ) {
+		for(int j = 0; j < ost->enc->width; j++) {
+			for(int k = 0; k < subpixel; k++) {
+				cv::Vec3b pixel = mat.at<cv::Vec3b>(i, j); 
+				int pixelPos = (i * ost->enc->width) + j;
+				ost->frame->data[0][pixelPos * subpixel + k] = (unsigned char) pixel.val[k];
+			}
+		}	
+	}	
+
+	ost->frame->pts = ost->next_pts++;
+	return ost->frame ;
 }
 
 int encodeVideoFrame(AVFormatContext *oc, OutputStream *ost, cv::Mat mat) {
-    int ret;
-    AVCodecContext *context;
-    AVFrame *frame;
-    int got_packet = 0;
-    AVPacket pkt = { 0 };
-    context = ost->enc;
-    
-    frame = convertMatToFrame(ost, mat);
-    av_init_packet(&pkt);
+	int ret;
+	AVCodecContext *context;
+	AVFrame *frame;
+	int got_packet = 0;
+	AVPacket pkt = { 0 };
+	context = ost->enc;
 
-    ret = avcodec_send_frame(context, frame);
-    if (ret < 0 && ret != AVERROR_EOF) {
-        fprintf(stderr, "Error encoding video frame\n");
-        exit(1);
-    } 
+	frame = convertMatToFrame(ost, mat);
+	av_init_packet(&pkt);
 
-    got_packet = !avcodec_receive_packet(context, &pkt);
+	ret = avcodec_send_frame(context, frame);
+	if (ret < 0 && ret != AVERROR_EOF) {
+		fprintf(stderr, "Error encoding video frame\n");
+		exit(1);
+	} 
 
-    if (got_packet) {
-        ret = writeFrame(oc, &context->time_base, ost->st, &pkt);
-    } else {
-        ret = 0;
-    }
+	got_packet = !avcodec_receive_packet(context, &pkt);
 
-    if (ret < 0) {
-        fprintf(stderr, "Error while writing video frame\n");
-        exit(1);
-    }
+	if (got_packet) {
+		ret = writeFrame(oc, &context->time_base, ost->st, &pkt);
+	} else {
+		ret = 0;
+	}
 
-    return (frame || got_packet) ? 0 : 1;
+	if (ret < 0) {
+		fprintf(stderr, "Error while writing video frame\n");
+		exit(1);
+	}
+
+	return (frame || got_packet) ? 0 : 1;
 }
 
 void destructor(AVFormatContext *oc, OutputStream *ost)
 {
-    avcodec_free_context(&ost->enc);
-    av_frame_free(&ost->frame);
+	avcodec_free_context(&ost->enc);
+	av_frame_free(&ost->frame);
 }
 
 int main(int argc, char **argv) {
 
-    if (argc < 2) {
-        printf("usage: %s [FILE]\n", argv[0]);
-        return 1;
-    }
+	if (argc < 2) {
+		printf("usage: %s [FILE]\n", argv[0]);
+		return 1;
+	}
 
-    cv::VideoCapture cap;
-    cv::Mat mat;
+	cv::VideoCapture cap;
+	cv::Mat mat;
 
-    int deviceID = 1;
-    int apiID = cv::CAP_ANY;
-    cap.open(deviceID + apiID); 
-    if (!cap.isOpened()) { 
-       std::cerr << "ERROR! Unable to open camera" << std::endl;
-       return -1; 
-    }
+	int deviceID = 1;
+	int apiID = cv::CAP_ANY;
+	cap.open(deviceID + apiID); 
+	if (!cap.isOpened()) { 
+		std::cerr << "ERROR! Unable to open camera" << std::endl;
+		return -1; 
+	}
 
-    OutputStream video_st = { 0 };
-    const char *filename;
-    AVOutputFormat *fmt;
-    AVFormatContext *oc;
-    AVCodec *video_codec;
-    int ret;
-    int have_video = 0;
-    int encode_video = 0;
-    AVDictionary *opt = NULL;
-    int i;
+	OutputStream video_st = { 0 };
+	const char *filename;
+	AVOutputFormat *fmt;
+	AVFormatContext *oc;
+	AVCodec *video_codec;
+	int ret;
+	int have_video = 0;
+	int encode_video = 0;
+	AVDictionary *opt = NULL;
+	int i;
 
-    filename = argv[1];
+	filename = argv[1];
 
-    avformat_alloc_output_context2(&oc, NULL, NULL, filename);
-    if (!oc) {
-        printf("Could not deduce output format from file extension: using MPEG.\n");
-        avformat_alloc_output_context2(&oc, NULL, "mpeg", filename);
-    }
+	avformat_alloc_output_context2(&oc, NULL, NULL, filename);
+	if (!oc) {
+		printf("Could not deduce output format from file extension: using MPEG.\n");
+		avformat_alloc_output_context2(&oc, NULL, "mpeg", filename);
+	}
 
-    if (!oc)
-        return 1;
+	if (!oc)
+		return 1;
 
-    fmt = oc->oformat;
+	fmt = oc->oformat;
 
-    if (fmt->video_codec != AV_CODEC_ID_NONE) {
-        open_stream(&video_st, oc, &video_codec, fmt->video_codec, cap);
-        have_video = 1;
-        encode_video = 1;
-    }
+	if (fmt->video_codec != AV_CODEC_ID_NONE) {
+		open_stream(&video_st, oc, &video_codec, fmt->video_codec, cap);
+		have_video = 1;
+		encode_video = 1;
+	}
 
-    if (have_video)
-        open_video(oc, video_codec, &video_st, opt);
-    //VideoEncoder Class
-    //AudioEncoder Class
+	if (have_video)
+		open_video(oc, video_codec, &video_st, opt);
+	//VideoEncoder Class
+	//AudioEncoder Class
 
-    av_dump_format(oc, 0, filename, 1);
+	av_dump_format(oc, 0, filename, 1);
 
-    //AVWriterClass
-    if (!(fmt->flags & AVFMT_NOFILE)) {
-        ret = avio_open(&oc->pb, filename, AVIO_FLAG_WRITE);
-        if (ret < 0) {
-            fprintf(stderr, "Could not open %s\n", filename);
-            return 1;
-        }
-    }
+	//AVWriterClass
+	if (!(fmt->flags & AVFMT_NOFILE)) {
+		ret = avio_open(&oc->pb, filename, AVIO_FLAG_WRITE);
+		if (ret < 0) {
+			fprintf(stderr, "Could not open %s\n", filename);
+			return 1;
+		}
+	}
 
-    ret = avformat_write_header(oc, &opt);
-    if (ret < 0) {
-        fprintf(stderr, "Error occurred when opening output file\n");
-        return 1;
-    }
+	ret = avformat_write_header(oc, &opt);
+	if (ret < 0) {
+		fprintf(stderr, "Error occurred when opening output file\n");
+		return 1;
+	}
 
-    //AVWriter Capture Audio and Video
-    while (encode_video) {
-	    cap >> mat;
-	    imshow("Live", mat);
+	//AVWriter Capture Audio and Video
+	while (encode_video) {
+		cap >> mat;
+		imshow("Live", mat);
 
-	    if(cv::waitKey(5) >= 0)
-		    break;
+		if(cv::waitKey(5) >= 0)
+			break;
 
-	    //AVWriter::writeFrame()
-	    //VideoEncoder::encodeFrame()
-            encode_video = !encodeVideoFrame(oc, &video_st, mat);
-    }
+		//AVWriter::writeFrame()
+		//VideoEncoder::encodeFrame()
+		encode_video = !encodeVideoFrame(oc, &video_st, mat);
+	}
 
-    //AudioEncoder.SendFrames()
+	//AudioEncoder.SendFrames()
 
 
 
-    //VideoEncoder Destructor
-    if (have_video)
-        destructor(oc, &video_st);
+	//VideoEncoder Destructor
+	if (have_video)
+		destructor(oc, &video_st);
 
-    //AVWriter Close Stream
-    av_write_trailer(oc);
-    if (!(fmt->flags & AVFMT_NOFILE))
-        avio_closep(&oc->pb);
+	//AVWriter Close Stream
+	av_write_trailer(oc);
+	if (!(fmt->flags & AVFMT_NOFILE))
+		avio_closep(&oc->pb);
 
-    //AVWriter ~Destructor
-    avformat_free_context(oc);
+	//AVWriter ~Destructor
+	avformat_free_context(oc);
 
-    return 0;
+	return 0;
 }
 
