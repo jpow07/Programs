@@ -46,6 +46,8 @@ libav::AVWriter::AVWriter(const char *filename, int resHeight, int resWidth, std
 		fprintf(stderr, "Error occurred when opening output file\n");
 		exit(1);
 	}
+
+	std::cout << "\033[38;2;0;255;0mAVWriter Initialized\033[39m" << std::endl;
 }
 
 libav::AVWriter::~AVWriter()
@@ -61,11 +63,12 @@ libav::AVWriter::~AVWriter()
 	free(this->videoStream);
 }
 
-libav::AVWriter::writeFrame(cv::Mat &mat)
+bool libav::AVWriter::writeFrame(cv::Mat &mat)
 {
+	
+	bool success = this->videoStream->encodeFrame(this->context, mat);
 
-
-
+	return (success)? true : false;
 
 }
 

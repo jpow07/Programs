@@ -48,10 +48,8 @@ public:
 			std::string audio_codec, bool hasVideo, bool hasAudio);
 	~AVWriter();
 
-	bool writeFrame(AVFrame *frame);
+	//	void writeFrame(AVFrame *frame);
 	bool writeFrame(cv::Mat &mat);
-
-	operator<<(cv::Mat &mat);
 
 private:
 	AVOutputFormat *format;

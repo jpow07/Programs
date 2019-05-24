@@ -14,7 +14,6 @@ libav::VideoEncoder::VideoEncoder(AVFormatContext *formatContext, const char *co
 		fprintf(stderr, "Couldn't find encoder: '%s'\n", codec_name);
 		exit(1);
 	}
-	std::cout << "Found Encoder" << std::endl;
 	
 	//Output Context
 	this->stream = avformat_new_stream(formatContext, NULL);
@@ -23,14 +22,12 @@ libav::VideoEncoder::VideoEncoder(AVFormatContext *formatContext, const char *co
 		exit(1);
 	}
 
-	std::cout << "Allocated Stream" << std::endl;
 
 	this->context = avcodec_alloc_context3(codec);
 	if (!this->context) {
 		fprintf(stderr, "Could not alloc an encoding context\n");
 		exit(1);
 	}
-	std::cout << "Allocated Context" << std::endl;
 
 	this->context->codec = codec;
 
@@ -56,7 +53,6 @@ libav::VideoEncoder::VideoEncoder(AVFormatContext *formatContext, const char *co
 		fprintf(stderr, "Could not open video codec\n");
 		exit(1);
 	}
-	std::cout << "Opened Video Codec" << std::endl;
 
 
 	// Allocate Frame
@@ -70,14 +66,12 @@ libav::VideoEncoder::VideoEncoder(AVFormatContext *formatContext, const char *co
 	this->frame->width  = width;
 	this->frame->height = height;
 
-	std::cout << "Frame HWF are set" << std::endl;
 
 	ret = av_frame_get_buffer(this->frame, 32);
 	if (ret < 0) {
 		fprintf(stderr, "Could not allocate frame data.\n");
 		exit(1);
 	}
-	std::cout << "Allocated Frame Data" << std::endl;
 
 	if (!this->frame) {
 		fprintf(stderr, "Could not allocate video frame\n");
@@ -91,6 +85,7 @@ libav::VideoEncoder::VideoEncoder(AVFormatContext *formatContext, const char *co
 		exit(1);
 	}
 
+	std::cout << "\033[38;2;0;255;0mVideo Stream Initialized\033[39m" << std::endl;
 }
 
 libav::VideoEncoder::~VideoEncoder()
@@ -105,6 +100,7 @@ void libav::VideoEncoder::encodeFrame()
 	int got_packet = 0;
 	av_init_packet(this->packet);
 
+
 	int ret = avcodec_send_frame(context, frame);
 	if (ret < 0 && ret != AVERROR_EOF) {
 		fprintf(stderr, "Error encoding video frame\n");
@@ -115,10 +111,13 @@ void libav::VideoEncoder::encodeFrame()
 
 }
 
-void libav::VideoEncoder::encodeFrame(cv::Mat &mat)
+bool libav::VideoEncoder::encodeFrame(AVFormatContext *fmt_ctx,cv::Mat &mat)
 {
 
 	int got_packet = 0;
+	AVPacket pkt = {0};
+	av_init_packet(&pkt);
+//	av_init_packet(this->packet);
 
 	if (av_frame_make_writable(this->frame) < 0)
 		exit(1);
@@ -135,14 +134,23 @@ void libav::VideoEncoder::encodeFrame(cv::Mat &mat)
 	}	
 	this->frame->pts = this->next_pts++;
 
-	av_init_packet(this->packet);
-
 	int ret = avcodec_send_frame(context, this->frame);
 	if (ret < 0 && ret != AVERROR_EOF) {
 		fprintf(stderr, "Error encoding video frame\n");
 		exit(1);
 	}
 
-	got_packet = !avcodec_receive_packet(context, this->packet);
+	got_packet = !avcodec_receive_packet(context, &pkt);
+	if(got_packet){
+	    	av_packet_rescale_ts(&pkt, this->context->time_base, this->stream->time_base);
+    		pkt.stream_index = this->stream->index;
+    		/* Write the compressed frame to the media file. */
+   		ret = av_interleaved_write_frame(fmt_ctx, &pkt);	
+		if(ret == 0)
+			return true;
+		else
+			return false;
+	}
+//	this->packet = &pkt;
 }
 

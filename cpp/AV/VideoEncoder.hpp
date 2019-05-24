@@ -53,11 +53,11 @@ class VideoEncoder {
 		~VideoEncoder();
 
 		void encodeFrame();
-		void encodeFrame(cv::Mat &mat);
+		bool encodeFrame(AVFormatContext *fmt_ctx, cv::Mat &mat);
 		AVPacket* getPacket() const { return this->packet; }
 		AVCodecContext* getCodecContext() const { return this->context; }
 
-	private:
+	//private:
 		AVStream *stream;
 		AVCodecContext *context;
 		AVFrame *frame;

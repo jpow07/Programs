@@ -52,7 +52,12 @@ int main(int argc, const char *argv[]) {
 			encode_video = false;
 			
 		//mWriter << mat;
-//		mWriter.writeFrame(mat);
+		bool success = false;
+		success = mWriter.writeFrame(mat);
+		if(success)
+			std::cout << "\033[38;2;0;255;0mSuccesful Frame Write\033[39m" << std::endl;
+		else
+			std::cout << "\033[38;2;255;0;0mUnsuccessful Frame Write\033[39m" << std::endl;
 		
 	}
 
