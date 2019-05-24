@@ -36,29 +36,22 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
-//OpenCV Libraries
-#include <opencv2/opencv.hpp> 
-#include <opencv2/core.hpp> 
-#include <opencv2/highgui.hpp> 
-#include <opencv2/imgcodecs.hpp> 
-#include <opencv2/imgproc.hpp> 
+#include "VideoEncoder.hpp"
+//#include "AudioEncoder.hpp"
 
-#define STREAM_FRAME_RATE 10 /* 25 images/s */
-#define STREAM_PIX_FMT    AV_PIX_FMT_BGR24 /* default pix_fmt */
-
-#define SCALE_FLAGS SWS_BICUBIC
-#define VIDEO_CODEC "libx264rgb"
-#define USING_H264 1
 
 namespace libav {
 
 class AVWriter {
 public:
-	AVWriter();
+	AVWriter(const char *filename, int resHeight, int resWidth, std::string video_codec, 
+			std::string audio_codec, bool hasVideo, bool hasAudio);
 	~AVWriter();
 
 	bool writeFrame(AVFrame *frame);
 	bool writeFrame(cv::Mat &mat);
+
+	operator<<(cv::Mat &mat);
 
 private:
 	AVOutputFormat *format;
@@ -67,11 +60,8 @@ private:
 	AVPacket *videoPacket;
 	AVPacket *audioPacket;
 
-	//AVCodec *videoCodec;
-	//AVCodec *audioCodec;
-
-	VideoEncoder videoStream;
-	AudioEncoder audioStream;
+	VideoEncoder *videoStream;
+//	AudioEncoder *audioStream;
 
 	bool hasVideo;
 	bool hasAudio;

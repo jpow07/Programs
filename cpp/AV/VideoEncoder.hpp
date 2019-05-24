@@ -1,5 +1,4 @@
 /*
- * 
  * Copyright (c) 2003 Fabrice Bellard
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,6 +24,7 @@
 #define VIDEOENCODER_H_
 
 #define __STDC_CONSTANT_MACROS
+#include <iostream>
 extern "C" {
 #include <stdlib.h>
 #include <stdio.h>
@@ -36,14 +36,10 @@ extern "C" {
 }
 
 //OpenCV Libraries
-#include <opencv2/opencv.hpp> 
-#include <opencv2/core.hpp> 
-#include <opencv2/highgui.hpp> 
-#include <opencv2/imgcodecs.hpp> 
-#include <opencv2/imgproc.hpp> 
+#include <opencv2/core/mat.hpp> 
 
-#define STREAM_FRAME_RATE 10 /* 25 images/s */
-#define STREAM_PIX_FMT    AV_PIX_FMT_BGR24 /* default pix_fmt */
+#define STREAM_FRAME_RATE 10 
+#define STREAM_PIX_FMT AV_PIX_FMT_BGR24 
 
 #define SCALE_FLAGS SWS_BICUBIC
 #define VIDEO_CODEC "libx264rgb"
@@ -53,11 +49,13 @@ namespace libav {
 
 class VideoEncoder {
 	public:
-		VideoWriter();
-		~VideoWriter();
+		VideoEncoder(AVFormatContext *oc, const char *codec_name, int height, int width);
+		~VideoEncoder();
 
-		void allocateFrame()
-			AVPacket* encodeFrame();
+		void encodeFrame();
+		void encodeFrame(cv::Mat &mat);
+		AVPacket* getPacket() const { return this->packet; }
+		AVCodecContext* getCodecContext() const { return this->context; }
 
 	private:
 		AVStream *stream;

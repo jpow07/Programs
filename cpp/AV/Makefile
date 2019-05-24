@@ -30,6 +30,29 @@ muxing.o : muxing.cpp
 	@echo Compiling muxing.cpp
 	@g++ $^ -c -o obj/$@ $(CXXFLAGS) $(CSTD)
 
+
+record : main.o AVWriter.o VideoEncoder.o AVWriter
+
+AVWriter : $(OBJ_DIR)/main.o $(OBJ_DIR)/AVWriter.o $(OBJ_DIR)/VideoEncoder.o 
+	@echo Linking AVWriter.o to third-party libraries 
+	@g++ $^ -o $@ $(LDFLAGS)
+
+main.o : main.cpp
+	@echo Compiling main.cpp
+	@g++ $^ -c -o obj/$@ $(CXXFLAGS) $(CSTD)
+
+AVWriter.o : AVWriter.cpp
+	@echo Compiling AVWriter.cpp
+	@g++ $^ -c -o obj/$@ $(CXXFLAGS) $(CSTD)
+
+VideoEncoder.o : VideoEncoder.cpp
+	@echo Compiling VideoEncoder.cpp
+	@g++ $^ -c -o obj/$@ $(CXXFLAGS) $(CSTD)
+
+AudioEncoder.o : AudioEncoder.cpp
+	@echo Compiling AudioEncoder.cpp
+	@g++ $^ -c -o obj/$@ $(CXXFLAGS) $(CSTD)
+
 .PHONY : clean
 
 clean :

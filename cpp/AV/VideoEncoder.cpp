@@ -1,152 +1,131 @@
 #include "VideoEncoder.hpp" 
 
-libav::VideoEncoder::VideoEncoder()
+libav::VideoEncoder::VideoEncoder(AVFormatContext *formatContext, const char *codec_name,
+	       	int height, int width)
 {
 
-	AVCodecContext *c;
+	AVCodec *codec;
 	int i, ret;
 
-	if (USING_H264) {
-		*codec = avcodec_find_encoder_by_name("libx264rgb");
-	} else {
-		*codec = avcodec_find_encoder(codec_id);
-	}
-	if (!(*codec)) {
-		fprintf(stderr, "Could not find encoder for '%s'\n", avcodec_get_name(codec_id));
+	if (USING_H264)
+		codec = avcodec_find_encoder_by_name(codec_name);
+
+	if (!codec) {
+		fprintf(stderr, "Couldn't find encoder: '%s'\n", codec_name);
 		exit(1);
 	}
-
-
-	ost->st = avformat_new_stream(oc, NULL);
-	if (!ost->st) {
+	std::cout << "Found Encoder" << std::endl;
+	
+	//Output Context
+	this->stream = avformat_new_stream(formatContext, NULL);
+	if (!this->stream) {
 		fprintf(stderr, "Could not allocate stream\n");
 		exit(1);
 	}
 
-	c = avcodec_alloc_context3(*codec);
+	std::cout << "Allocated Stream" << std::endl;
 
-	if (!c) {
+	this->context = avcodec_alloc_context3(codec);
+	if (!this->context) {
 		fprintf(stderr, "Could not alloc an encoding context\n");
 		exit(1);
 	}
+	std::cout << "Allocated Context" << std::endl;
 
+	this->context->codec = codec;
 
 	if (USING_H264) {
-		c->codec_id = AV_CODEC_ID_H264;
-		av_opt_set(c->priv_data, "preset", "veryfast", 0);	
+		this->context->codec_id = AV_CODEC_ID_H264;
+		av_opt_set(this->context->priv_data, "preset", "veryfast", 0);	
 	}
 
-	c->bit_rate = 400000;
-	c->width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
-	c->height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
-	ost->st->time_base = (AVRational){ 1, STREAM_FRAME_RATE };
-	c->time_base = ost->st->time_base;
-	c->gop_size = 12; 
-	c->pix_fmt = STREAM_PIX_FMT;
+	this->context->bit_rate = 400000;
+	this->context->width = width;
+	this->context->height = height;
+	this->stream->time_base = (AVRational){ 1, STREAM_FRAME_RATE };
+	this->context->time_base = this->stream->time_base;
+	this->context->gop_size = 12; 
+	this->context->pix_fmt = STREAM_PIX_FMT;
 
-	if (oc->oformat->flags & AVFMT_GLOBALHEADER)
-		c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
-
-	ost->enc = c;
+	if (formatContext->oformat->flags & AVFMT_GLOBALHEADER)
+		this->context->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
 
-	AVDictionary *opt = NULL;
-	av_dict_copy(&opt, opt_arg, 0);
-	ret = avcodec_open2(c, codec, &opt);
-	av_dict_free(&opt);
-
+	ret = avcodec_open2(this->context, this->context->codec, NULL);
 	if (ret < 0) {
 		fprintf(stderr, "Could not open video codec\n");
 		exit(1);
 	}
+	std::cout << "Opened Video Codec" << std::endl;
 
-	ost->frame = allocFrame(c->pix_fmt, c->width, c->height);
-	if (!ost->frame) {
-		fprintf(stderr, "Could not allocate video frame\n");
-		exit(1);
-	}
 
-	ret = avcodec_parameters_from_context(ost->st->codecpar, c);
-	if (ret < 0) {
-		fprintf(stderr, "Could not copy the stream parameters\n");
-		exit(1);
-	}
-
-	ost->enc = c;
-}
-
-libav::VideoEncoder::~VideoEncoder()
-{
-	avcodec_free_context(this->context);
-	av_frame_free(this->frame);
-}
-
-void libav::VideoEncoder::allocateFrame()
-{
-	int ret;
-
+	// Allocate Frame
 	this->frame = av_frame_alloc();
-	if (!this->frame)
-		return NULL;
+	if(!this->frame) {
+		fprintf(stderr, "Could not allocate frame.\n");
+		exit(1);
+	}
 
-	this->frame->format = pix_fmt;
+	this->frame->format = STREAM_PIX_FMT;
 	this->frame->width  = width;
 	this->frame->height = height;
+
+	std::cout << "Frame HWF are set" << std::endl;
 
 	ret = av_frame_get_buffer(this->frame, 32);
 	if (ret < 0) {
 		fprintf(stderr, "Could not allocate frame data.\n");
 		exit(1);
 	}
+	std::cout << "Allocated Frame Data" << std::endl;
 
-}
-
-AVPacket* libav::VideoEncoder::encodeFrame()
-{
-
-	int ret;
-	AVCodecContext *context;
-	AVFrame *frame;
-	int got_packet = 0;
-	AVPacket pkt = { 0 };
-	context = ost->enc;
-
-	//frame = convertMatToFrame(ost, mat);
-	av_init_packet(&pkt);
-
-	ret = avcodec_send_frame(context, frame);
-	if (ret < 0 && ret != AVERROR_EOF) {
-		fprintf(stderr, "Error encoding video frame\n");
+	if (!this->frame) {
+		fprintf(stderr, "Could not allocate video frame\n");
 		exit(1);
+	}
 
-
-	got_packet = !avcodec_receive_packet(context, &pkt);
-
-	//RETURN HERE TO SEND PACKET BACK TO AVWRITER (AVWRITER)
-	if (got_packet) {
-		return this->packet
-	} else {
-		return NULL; 
+	// Allocate something	
+	ret = avcodec_parameters_from_context(this->stream->codecpar, this->context);
+	if (ret < 0) {
+		fprintf(stderr, "Could not copy the stream parameters\n");
+		exit(1);
 	}
 
 }
 
-AVPacket* libav::VideoEncoder::encodeFrame(cv::Mat &mat)
+libav::VideoEncoder::~VideoEncoder()
+{
+	avcodec_free_context(&this->context);
+	av_frame_free(&this->frame);
+}
+
+void libav::VideoEncoder::encodeFrame()
 {
 
-	int ret;
-	AVCodecContext *context;
-	AVFrame *frame;
 	int got_packet = 0;
-	AVPacket pkt = { 0 };
-	context = ost->enc;
+	av_init_packet(this->packet);
+
+	int ret = avcodec_send_frame(context, frame);
+	if (ret < 0 && ret != AVERROR_EOF) {
+		fprintf(stderr, "Error encoding video frame\n");
+		exit(1);
+	}
+
+	got_packet = !avcodec_receive_packet(this->context, this->packet);
+
+}
+
+void libav::VideoEncoder::encodeFrame(cv::Mat &mat)
+{
+
+	int got_packet = 0;
 
 	if (av_frame_make_writable(this->frame) < 0)
 		exit(1);
 
 	int subpixel = 3; //number of pixels RGB = 3 RGBA = 4
 	for(int i = 0; i < this->context->height ; i++ ) {
-		for(int j = 0; j < this->encoder->width; j++) {
+		for(int j = 0; j < this->context->width; j++) {
 			for(int k = 0; k < subpixel; k++) {
 				cv::Vec3b pixel = mat.at<cv::Vec3b>(i, j); 
 				int pixelPos = (i * this->context->width) + j;
@@ -154,26 +133,16 @@ AVPacket* libav::VideoEncoder::encodeFrame(cv::Mat &mat)
 			}
 		}	
 	}	
-
 	this->frame->pts = this->next_pts++;
 
-	av_init_packet(&pkt);
+	av_init_packet(this->packet);
 
-	ret = avcodec_send_frame(context, frame);
+	int ret = avcodec_send_frame(context, this->frame);
 	if (ret < 0 && ret != AVERROR_EOF) {
 		fprintf(stderr, "Error encoding video frame\n");
 		exit(1);
-
-
-	got_packet = !avcodec_receive_packet(context, &pkt);
-
-	//RETURN HERE TO SEND PACKET BACK TO AVWRITER (AVWRITER)
-	if (got_packet) {
-		return this->packet
-	} else {
-		return NULL; 
 	}
 
+	got_packet = !avcodec_receive_packet(context, this->packet);
 }
-
 

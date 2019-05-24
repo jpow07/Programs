@@ -35,12 +35,8 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
-//OpenCV Libraries
-#include <opencv2/opencv.hpp> 
-#include <opencv2/core.hpp> 
-#include <opencv2/highgui.hpp> 
-#include <opencv2/imgcodecs.hpp> 
-#include <opencv2/imgproc.hpp> 
+
+
 
 #define STREAM_FRAME_RATE 10 /* 25 images/s */
 #define STREAM_PIX_FMT    AV_PIX_FMT_BGR24 /* default pix_fmt */

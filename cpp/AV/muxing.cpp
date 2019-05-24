@@ -42,7 +42,7 @@ extern "C" {
 #define STREAM_FRAME_RATE 10 /* 25 images/s */
 #define STREAM_PIX_FMT    AV_PIX_FMT_BGR24 /* default pix_fmt */
 
-#define SCALE_FLAGS SWS_BICUBIC
+#define SCALE_FLAGS SWS_BILINEAR
 #define VIDEO_CODEC "libx264rgb"
 #define USING_H264 1
 
@@ -68,7 +68,7 @@ int writeFrame(AVFormatContext *fmt_ctx, const AVRational *time_base,
 }
 
 void open_stream(OutputStream *ost, AVFormatContext *oc, AVCodec **codec,
-		enum AVCodecID codec_id, cv::VideoCapture cap) {
+		cv::VideoCapture cap) {
 
 	AVCodecContext *c;
 	int i;
@@ -76,10 +76,10 @@ void open_stream(OutputStream *ost, AVFormatContext *oc, AVCodec **codec,
 	if (USING_H264) {
 		*codec = avcodec_find_encoder_by_name("libx264rgb");
 	} else {
-		*codec = avcodec_find_encoder(codec_id);
+		//*codec = avcodec_find_encoder(codec_id);
 	}
 	if (!(*codec)) {
-		fprintf(stderr, "Could not find encoder for '%s'\n", avcodec_get_name(codec_id));
+		//fprintf(stderr, "Could not find encoder for '%s'\n", avcodec_get_name(codec_id));
 		exit(1);
 	}
 
@@ -145,7 +145,7 @@ void open_video(AVFormatContext *oc, AVCodec *codec, OutputStream *ost, AVDictio
 	AVCodecContext *c = ost->enc;
 	AVDictionary *opt = NULL;
 	av_dict_copy(&opt, opt_arg, 0);
-	ret = avcodec_open2(c, codec, &opt);
+	ret = avcodec_open2(c, codec, NULL);
 	av_dict_free(&opt);
 
 	if (ret < 0) {
@@ -216,7 +216,7 @@ int encodeVideoFrame(AVFormatContext *oc, OutputStream *ost, cv::Mat mat) {
 		exit(1);
 	}
 
-	return (frame || got_packet) ? 0 : 1;
+	return (frame || got_packet)? 0 : 1;
 }
 
 void destructor(AVFormatContext *oc, OutputStream *ost)
@@ -243,6 +243,10 @@ int main(int argc, char **argv) {
 		return -1; 
 	}
 
+
+
+	// FFMPEG
+	// AVWriter();
 	OutputStream video_st = { 0 };
 	const char *filename;
 	AVOutputFormat *fmt;
@@ -268,15 +272,13 @@ int main(int argc, char **argv) {
 	fmt = oc->oformat;
 
 	if (fmt->video_codec != AV_CODEC_ID_NONE) {
-		open_stream(&video_st, oc, &video_codec, fmt->video_codec, cap);
+		open_stream(&video_st, oc, &video_codec, cap);
 		have_video = 1;
 		encode_video = 1;
 	}
 
 	if (have_video)
 		open_video(oc, video_codec, &video_st, opt);
-	//VideoEncoder Class
-	//AudioEncoder Class
 
 	av_dump_format(oc, 0, filename, 1);
 
@@ -295,16 +297,14 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	//AVWriter Capture Audio and Video
 	while (encode_video) {
 		cap >> mat;
 		imshow("Live", mat);
-
-		if(cv::waitKey(5) >= 0)
+		
+		if(cv::waitKey(1) >= 0){
 			break;
+		}
 
-		//AVWriter::writeFrame()
-		//VideoEncoder::encodeFrame()
 		encode_video = !encodeVideoFrame(oc, &video_st, mat);
 	}
 
