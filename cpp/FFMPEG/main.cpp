@@ -31,7 +31,7 @@ int main(int argc, const char *argv[]) {
 	cv::VideoCapture cap;
 	cv::Mat mat;
 
-	int deviceID = 1;
+	int deviceID = 0;
 	int apiID = cv::CAP_ANY;
 	cap.open(deviceID + apiID); 
 	if (!cap.isOpened()) { 
