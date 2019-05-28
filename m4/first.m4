@@ -1,0 +1,2 @@
+define('foo', 'Hello World!')
+
