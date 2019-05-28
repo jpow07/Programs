@@ -1,7 +1,7 @@
 #include <stdio.h>
 //#include <stdlib.h>
 
-const int bytesPerPixel = 3; /// red, green, blue
+const int bytesPerPixel = 4; /// red, green, blue
 const int fileHeaderSize = 14;
 const int infoHeaderSize = 40;
 
@@ -9,21 +9,22 @@ void generateBitmapImage(unsigned char *image, int height, int width, char* imag
 unsigned char* createBitmapFileHeader(int height, int width, int paddingSize);
 unsigned char* createBitmapInfoHeader(int height, int width);
 
+#define RGBA_Pixel(r,g,b,a) (((( (r) << 8 ) | (g) ) << 8 | (b) >> 8) | (a))
+#define RGB_Pixel(r,g,b) (0 | ( ( ( ( (r) << 8 ) | (g) ) << 8 | (b) ) ) )	
 
 int main(){
-    int height = 10;
-    int width = 10;
+
+    int height = 1080;
+    int width = 1920;
     int vertical_resolution = 1080;
     int horizontal_resolution = 1920;
-    unsigned char image[height][width][bytesPerPixel];
+    unsigned int image[height][width];//[bytesPerPixel];
     char* imageFileName = "image2.bmp";
 
     int i, j;
     for(i = 0; i < height; i++){
         for(j = 0; j < width; j++){
-            image[i][j][2] = (unsigned char)((double)i); ///red
-            image[i][j][1] = (unsigned char)((double)j); ///green
-            image[i][j][1] = (unsigned char)(((double)i+j)); ///blue
+		image[i][j] = RGB_Pixel(255, 105, 0);
         }
     }
 
@@ -94,7 +95,8 @@ unsigned char* createBitmapInfoHeader(int height, int width){
 
     infoHeader[ 0] = (unsigned char)(infoHeaderSize);
     infoHeader[ 4] = (unsigned char)(width    );
-    infoHeader[ 5] = (unsigned char)(width>> 8);
+    //infoHeader[ 5] = (unsigned char)(width>> 8);
+    infoHeader[ 5] = (unsigned char)(7);
     infoHeader[ 6] = (unsigned char)(width>>16);
     infoHeader[ 7] = (unsigned char)(width>>24);
     infoHeader[ 8] = (unsigned char)(height    );

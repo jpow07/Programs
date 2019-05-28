@@ -17,6 +17,7 @@ enum {
 
 #define PIXEL uint32_t
 #define RGBA_Pixel(r,g,b,a) (((((r) << 8) | (g)) << 8 | (b)) << 8 | (a))
+#define ARGB_Pixel(r,g,b,a) (((( (a) << 8 ) | (r) << 8 ) | (g) << 8 ) | (b) )
 #define RGB_Pixel(r,g,b) ( ( ( (r) << 8) | (g)) << 8 | (b))
 #define HEADER_KEY(a, b) (((a) << 8) | (b))
 
