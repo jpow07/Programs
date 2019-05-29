@@ -1,93 +1,109 @@
 #include <stdio.h>
-#include <stdint.h> 
+//#include <stdlib.h>
 
-#define DEBUG_ON 1
-#define DEBUG_OFF 0
+const int bytesPerPixel = 4; /// red, green, blue
+const int fileHeaderSize = 14;
+const int infoHeaderSize = 40;
 
-#define BITMAPFILEHEADER uint16_t;
-#define BITMAPINFOHEADER uint16_t;
-#define DEFAULT 0
-enum {
-	UNCOMPRESSED,	//Uncompressed
-	RLE8,		//8-bit image
-	RLE4,		//4-bit image
-	BITFIELDS	//16-bit and 32-bit images
+void generateBitmapImage(unsigned char *image, int height, int width, char* imageFileName);
+unsigned char* createBitmapFileHeader(int height, int width, int paddingSize);
+unsigned char* createBitmapInfoHeader(int height, int width);
 
-};
+#define RGBA_Pixel(r,g,b,a) (((( (r) << 8 ) | (g) ) << 8 | (b) >> 8) | (a))
+#define RGB_Pixel(r,g,b) (0 | ( ( ( ( (r) << 8 ) | (g) ) << 8 | (b) ) ) )	
 
-#define PIXEL uint32_t
-#define RGBA_Pixel(r,g,b,a) (((((r) << 8) | (g)) << 8 | (b)) << 8 | (a))
-#define ARGB_Pixel(r,g,b,a) (((( (a) << 8 ) | (r) << 8 ) | (g) << 8 ) | (b) )
-#define RGB_Pixel(r,g,b) ( ( ( (r) << 8) | (g)) << 8 | (b))
-#define HEADER_KEY(a, b) (((a) << 8) | (b))
+int main(){
 
-int main(int argc, char *argv[]) {
-	//BMP Information
-	uint32_t height_resolution = 10;
-	uint32_t width_resolution = 20;
-	uint32_t number_of_pixels = height_resolution * width_resolution;  
+    int height = 1080;
+    int width = 1920;
+    unsigned int image[height][width];//[bytesPerPixel];
+    char* imageFileName = "bitmap.bmp";
 
-	// File Header
-	uint16_t header = HEADER_KEY('B', 'M');
-	uint16_t reserved1 = DEFAULT;	
-	uint16_t reserved2 = DEFAULT;	
-	const uint32_t offset  = 26; // Number of bytes until the image data	
-	uint32_t filesize = number_of_pixels + offset;
-	
-	// Image Header
-	uint32_t image_size = 40;
-	uint32_t image_width = width_resolution;
-	uint32_t image_height = height_resolution;
-	const uint16_t num_color_planes = 1;
-	uint16_t bit_count = 24;
-	uint32_t compression = UNCOMPRESSED;	
-	uint32_t vertical_width = DEFAULT;
-	uint32_t horizontal_height = DEFAULT;
-	uint32_t color_map = DEFAULT;
-	uint32_t significant_colors = DEFAULT;
+    int i, j;
+    for(i = 0; i < height; i++){
+        for(j = 0; j < width; j++){
+		image[i][j] = RGB_Pixel(255, 105, 0);
+        }
+    }
 
-	const char *filename = argv[1];	
-	FILE *file_index;
-	file_index = fopen(filename,"wb");	
-	
-	//Write file header
-	fwrite(&header, sizeof(header), 1, file_index);
-	fwrite(&filesize, sizeof(filesize), 1, file_index);
-	fwrite(&reserved1, sizeof(reserved1), 1, file_index);
-	fwrite(&reserved2, sizeof(reserved2), 1, file_index);
-	fwrite(&offset, sizeof(offset), 1, file_index);
-
-	//Write image header
-	fwrite(&image_size, sizeof(image_size), 1, file_index);
-	fwrite(&image_width, sizeof(image_width), 1, file_index);
-	fwrite(&image_height, sizeof(image_height), 1, file_index);
-	fwrite(&num_color_planes, sizeof(num_color_planes), 1, file_index);
-	fwrite(&bit_count, sizeof(bit_count), 1, file_index);
-	fwrite(&compression, sizeof(compression), 1, file_index);
-	fwrite(&vertical_width, sizeof(vertical_width), 1, file_index);
-	fwrite(&horizontal_height, sizeof(horizontal_height), 1, file_index);
-	fwrite(&color_map, sizeof(color_map), 1, file_index);
-	fwrite(&significant_colors, sizeof(significant_colors), 1, file_index);
-
-	int image[number_of_pixels];
-
-	for (int i = 0; i < image_width; i++) {
-		for (int j = 0; j < image_height; j++) {
-			image[(i * image_height) + j] = RGB_Pixel(255,0,0);	
-//			printf("%d ", (i * image_height) + j);
-		}	
-	}
-
-	int i = 0;
-	while(i < number_of_pixels) {
-		fwrite(image, sizeof(int), number_of_pixels, file_index);
-		i++;
-	}
-	printf("i: %d pixels: %d\n", i, number_of_pixels);	
-	fclose(file_index);
-
-
-	return 0;
+    generateBitmapImage((unsigned char *)image, height, width, imageFileName);
+    printf("Image generated!\n");
 }
 
 
+void generateBitmapImage(unsigned char *image, int height, int width, char* imageFileName){
+
+    unsigned char padding[3] = {0, 0, 0};
+    int paddingSize = (4 - (width*bytesPerPixel) % 4) % 4;
+
+    unsigned char* fileHeader = createBitmapFileHeader(height, width, paddingSize);
+    unsigned char* infoHeader = createBitmapInfoHeader(height, width);
+
+    FILE* imageFile = fopen(imageFileName, "wb");
+
+    fwrite(fileHeader, 1, fileHeaderSize, imageFile);
+    fwrite(infoHeader, 1, infoHeaderSize, imageFile);
+
+    int i;
+    for(i=0; i<height; i++){
+        fwrite(image+(i*width*bytesPerPixel), bytesPerPixel, width, imageFile);
+        fwrite(padding, 1, paddingSize, imageFile);
+    }
+
+    fclose(imageFile);
+ //   free(fileHeader);
+ //   free(infoHeader);
+}
+
+unsigned char* createBitmapFileHeader(int height, int width, int paddingSize){
+    int fileSize = fileHeaderSize + infoHeaderSize + (bytesPerPixel*width+paddingSize) * height;
+
+    static unsigned char fileHeader[] = {
+        0,0, /// signature
+        0,0,0,0, /// image file size in bytes
+        0,0,0,0, /// reserved
+        0,0,0,0, /// start of pixel array
+    };
+
+    fileHeader[ 0] = (unsigned char)('B');
+    fileHeader[ 1] = (unsigned char)('M');
+    fileHeader[ 2] = (unsigned char)(fileSize    );
+    fileHeader[ 3] = (unsigned char)(fileSize>> 8);
+    fileHeader[ 4] = (unsigned char)(fileSize>>16);
+    fileHeader[ 5] = (unsigned char)(fileSize>>24);
+    fileHeader[10] = (unsigned char)(fileHeaderSize + infoHeaderSize);
+
+    return fileHeader;
+}
+
+unsigned char* createBitmapInfoHeader(int height, int width){
+    static unsigned char infoHeader[] = {
+        0,0,0,0, /// 0-3 header size
+        0,0,0,0, /// 4-7 image width
+        0,0,0,0, /// 8-11 image height
+        0,0, ///     12-13 number of color planes
+        0,0, ///     13-14 bits per pixel
+        0,0,0,0, /// 15-18 compression
+        0,0,0,0, /// 19-22 image size
+        0,0,0,0, /// 23-26 horizontal resolution
+        0,0,0,0, /// 27-30 vertical resolution
+        0,0,0,0, /// 31-34 colors in color table
+        0,0,0,0, /// 35-38 important color count
+    };
+
+    infoHeader[ 0] = (unsigned char)(infoHeaderSize);
+    infoHeader[ 4] = (unsigned char)(width    );
+    infoHeader[ 5] = (unsigned char)(width>> 8);
+    infoHeader[ 6] = (unsigned char)(width>>16);
+    infoHeader[ 7] = (unsigned char)(width>>24);
+    infoHeader[ 8] = (unsigned char)(height    );
+    infoHeader[ 9] = (unsigned char)(height>> 8);
+    infoHeader[10] = (unsigned char)(height>>16);
+    infoHeader[11] = (unsigned char)(height>>24);
+    infoHeader[12] = (unsigned char)(1);
+    infoHeader[14] = (unsigned char)(bytesPerPixel*8);
+    
+
+
+    return infoHeader;
+}
