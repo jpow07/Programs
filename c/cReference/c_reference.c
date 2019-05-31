@@ -37,6 +37,8 @@ struct position {
 	int z;
 };
 
+//fwrite([ptrToElements], sizeof(element), numElements, [where its going] );
+
 int main(int argc, const char *argv[]) {
 
 	//--Syntax -s

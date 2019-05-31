@@ -1,0 +1,9 @@
+for (int i = 0; i < frame->height; i++) {
+	for (int j = 0; j < frame->width; j++) {
+		unsigned int byte_location = (i * frame->width) + j;
+		uint8_t red =   frame->data[0][byte_location]; 	// Red
+		uint8_t green = frame->data[1][byte_location]; 	// Green
+		uint8_t blue =  frame->data[2][byte_location]; 	// Blue
+	
+	}
+}
