@@ -4,7 +4,7 @@
 PROGRAM_NAME = ImageBuffer
 CFLAGS = -Wall -g
 
-COMPILE = gcc -c $^ -c -o $@
+COMPILE = gcc -c $< -c -o $@
 LINK = gcc -o $(PROGRAM_NAME) $^ $(LIBS)
 
 #Compile Program Libraries to link to program executable
@@ -22,7 +22,7 @@ ImageBuffer.o : ImageBuffer.c
 	@echo Compiling ImageBuffer.c
 	@$(COMPILE) $(CFLAGS)
 
-Pixel.o : Pixel.c 
+Pixel.o : Pixel.c Pixel.h
 	@echo Compiling Pixel.c
 	@$(COMPILE) $(CFLAGS)
 

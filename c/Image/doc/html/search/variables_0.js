@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['heapbuffer',['heapBuffer',['../structImageBuffer.html#a8aa6824dad60f5b974abbc9bf8cbeb76',1,'ImageBuffer']]]
+  ['dynamicbuffer',['dynamicBuffer',['../structImageBuffer.html#a661f5deb3b9615e5fbcd71cbe22403b3',1,'ImageBuffer']]]
 ];

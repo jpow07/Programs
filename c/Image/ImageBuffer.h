@@ -17,8 +17,8 @@
 
 typedef struct ImageBuffer {
 
-	Pixel stackBuffer[ImageBufferSize]; //!< Useful for storing image on stack 
-	Pixel *heapBuffer; //!< Useful for storing images dynamically (i.e. HD, QHD, 4K)
+	Pixel staticBuffer[ImageBufferSize]; //!< Useful for storing image on stack 
+	Pixel *dynamicBuffer; //!< Useful for storing images dynamically (i.e. HD, QHD, 4K)
 
 } ImageBuffer;
 

@@ -68,7 +68,15 @@ $(function() {
 
 <p>Define Pixel Object.  
 <a href="#details">More...</a></p>
-<div class="textblock"><div class="dynheader">
+<div class="textblock"><code>#include &lt;stdint.h&gt;</code><br />
+</div><div class="textblock"><div class="dynheader">
+Include dependency graph for Pixel.h:</div>
+<div class="dyncontent">
+<div class="center"><img src="Pixel_8h__incl.png" border="0" usemap="#Pixel_8h" alt=""/></div>
+<map name="Pixel_8h" id="Pixel_8h">
+</map>
+</div>
+</div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="Pixel_8h__dep__incl.png" border="0" usemap="#Pixel_8hdep" alt=""/></div>
@@ -82,20 +90,140 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:a5255638464dae60a20a4cef759bc42ce"><td class="memItemLeft" align="right" valign="top"><a id="a5255638464dae60a20a4cef759bc42ce"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Pixel_8h.html#a5255638464dae60a20a4cef759bc42ce">Pixel</a>&#160;&#160;&#160;unsigned int</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Pixel_8h.html#a5255638464dae60a20a4cef759bc42ce">Pixel</a>&#160;&#160;&#160;uint32_t</td></tr>
 <tr class="memdesc:a5255638464dae60a20a4cef759bc42ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pixel is a macro definition for unsigned int. <br /></td></tr>
 <tr class="separator:a5255638464dae60a20a4cef759bc42ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6b1b53ddfa5d38f58be872ad6e4aea82"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Pixel_8h.html#a6b1b53ddfa5d38f58be872ad6e4aea82">RGBA2Pixel</a>(red,  green,  blue,  alpha)&#160;&#160;&#160;(((((red) &lt;&lt; 8 ) | (green) ) &lt;&lt; 8 | (blue) &gt;&gt; 8) | (alpha))</td></tr>
+<tr class="memitem:a6b1b53ddfa5d38f58be872ad6e4aea82"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Pixel_8h.html#a6b1b53ddfa5d38f58be872ad6e4aea82">RGBA2Pixel</a>(red,  green,  blue,  alpha)&#160;&#160;&#160;((((((red) &lt;&lt; 24)) | ((green) &lt;&lt; 16)) | ((blue) &lt;&lt; 8)) | ((alpha) &lt;&lt; 0))</td></tr>
 <tr class="memdesc:a6b1b53ddfa5d38f58be872ad6e4aea82"><td class="mdescLeft">&#160;</td><td class="mdescRight">A macro that returns and integer from RGBA values.  <a href="#a6b1b53ddfa5d38f58be872ad6e4aea82">More...</a><br /></td></tr>
 <tr class="separator:a6b1b53ddfa5d38f58be872ad6e4aea82"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7a004c69cfd71bf4847f7e00f8d4d92a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Pixel_8h.html#a7a004c69cfd71bf4847f7e00f8d4d92a">RGB2Pixel</a>(red,  green,  blue)&#160;&#160;&#160;(0 | ( ( ( ( (red) &lt;&lt; 8 ) | (green) ) &lt;&lt; 8 | (blue) ) ) )</td></tr>
+<tr class="memitem:a7a004c69cfd71bf4847f7e00f8d4d92a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Pixel_8h.html#a7a004c69cfd71bf4847f7e00f8d4d92a">RGB2Pixel</a>(red,  green,  blue)&#160;&#160;&#160;<a class="el" href="Pixel_8h.html#a6b1b53ddfa5d38f58be872ad6e4aea82">RGBA2Pixel</a>(red, green, blue, 0)</td></tr>
 <tr class="memdesc:a7a004c69cfd71bf4847f7e00f8d4d92a"><td class="mdescLeft">&#160;</td><td class="mdescRight">A macro that returns and integer from RGB values.  <a href="#a7a004c69cfd71bf4847f7e00f8d4d92a">More...</a><br /></td></tr>
 <tr class="separator:a7a004c69cfd71bf4847f7e00f8d4d92a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a80818d1694127e573190aa454075ecf4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Pixel_8h.html#a80818d1694127e573190aa454075ecf4">getRedComponent</a>(pixel)&#160;&#160;&#160;((pixel) &amp; (0xFF000000)) &gt;&gt; 24</td></tr>
+<tr class="memdesc:a80818d1694127e573190aa454075ecf4"><td class="mdescLeft">&#160;</td><td class="mdescRight">A macro that returns the red color component from the pixel.  <a href="#a80818d1694127e573190aa454075ecf4">More...</a><br /></td></tr>
+<tr class="separator:a80818d1694127e573190aa454075ecf4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24c65d670b2a4d983b5274652a43ce9f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Pixel_8h.html#a24c65d670b2a4d983b5274652a43ce9f">getGreenComponent</a>(pixel)&#160;&#160;&#160;((pixel) &amp; (0xFF0000)) &gt;&gt; 16</td></tr>
+<tr class="memdesc:a24c65d670b2a4d983b5274652a43ce9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">A macro that returns the green color component from the pixel.  <a href="#a24c65d670b2a4d983b5274652a43ce9f">More...</a><br /></td></tr>
+<tr class="separator:a24c65d670b2a4d983b5274652a43ce9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab660afc642f68a0f25f8e8e84ee26044"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Pixel_8h.html#ab660afc642f68a0f25f8e8e84ee26044">getBlueComponent</a>(pixel)&#160;&#160;&#160;((pixel) &amp; (0xFF00)) &gt;&gt; 8</td></tr>
+<tr class="memdesc:ab660afc642f68a0f25f8e8e84ee26044"><td class="mdescLeft">&#160;</td><td class="mdescRight">A macro that returns the blue color component from the pixel.  <a href="#ab660afc642f68a0f25f8e8e84ee26044">More...</a><br /></td></tr>
+<tr class="separator:ab660afc642f68a0f25f8e8e84ee26044"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad1b78c0c4353eba81bd1a627f595964d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Pixel_8h.html#ad1b78c0c4353eba81bd1a627f595964d">getAlphaComponent</a>(pixel)&#160;&#160;&#160;((pixel) &amp; (0xFF)) &gt;&gt; 0</td></tr>
+<tr class="memdesc:ad1b78c0c4353eba81bd1a627f595964d"><td class="mdescLeft">&#160;</td><td class="mdescRight">A macro that returns the blue color component from the pixel.  <a href="#ad1b78c0c4353eba81bd1a627f595964d">More...</a><br /></td></tr>
+<tr class="separator:ad1b78c0c4353eba81bd1a627f595964d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Define Pixel Object. </p>
 <p>Pixel is an unsigned int that stores individual values as a single value This also contains macros for manipulating elementary data types and treating them as Pixel data types. </p>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="ad1b78c0c4353eba81bd1a627f595964d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1b78c0c4353eba81bd1a627f595964d">&#9670;&nbsp;</a></span>getAlphaComponent</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define getAlphaComponent</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">pixel</td><td>)</td>
+          <td>&#160;&#160;&#160;((pixel) &amp; (0xFF)) &gt;&gt; 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A macro that returns the blue color component from the pixel. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pixelColor</td><td>is the pixel color value </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>unsigned char that represents a the blue component of the pixel </dd></dl>
+
+</div>
+</div>
+<a id="ab660afc642f68a0f25f8e8e84ee26044"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab660afc642f68a0f25f8e8e84ee26044">&#9670;&nbsp;</a></span>getBlueComponent</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define getBlueComponent</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">pixel</td><td>)</td>
+          <td>&#160;&#160;&#160;((pixel) &amp; (0xFF00)) &gt;&gt; 8</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A macro that returns the blue color component from the pixel. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pixelColor</td><td>is the pixel color value </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>unsigned char that represents a the blue component of the pixel </dd></dl>
+
+</div>
+</div>
+<a id="a24c65d670b2a4d983b5274652a43ce9f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a24c65d670b2a4d983b5274652a43ce9f">&#9670;&nbsp;</a></span>getGreenComponent</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define getGreenComponent</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">pixel</td><td>)</td>
+          <td>&#160;&#160;&#160;((pixel) &amp; (0xFF0000)) &gt;&gt; 16</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A macro that returns the green color component from the pixel. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pixelColor</td><td>is the pixel color value </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>unsigned char that represents a the green component of the pixel </dd></dl>
+
+</div>
+</div>
+<a id="a80818d1694127e573190aa454075ecf4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a80818d1694127e573190aa454075ecf4">&#9670;&nbsp;</a></span>getRedComponent</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define getRedComponent</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">pixel</td><td>)</td>
+          <td>&#160;&#160;&#160;((pixel) &amp; (0xFF000000)) &gt;&gt; 24</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A macro that returns the red color component from the pixel. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pixelColor</td><td>is the pixel color value </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Unsigned char that represents a the red component of the pixel </dd></dl>
+
+</div>
+</div>
 <a id="a7a004c69cfd71bf4847f7e00f8d4d92a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7a004c69cfd71bf4847f7e00f8d4d92a">&#9670;&nbsp;</a></span>RGB2Pixel</h2>
 
@@ -123,7 +251,7 @@ Macros</h2></td></tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td>&#160;&#160;&#160;(0 | ( ( ( ( (red) &lt;&lt; 8 ) | (green) ) &lt;&lt; 8 | (blue) ) ) )</td>
+          <td></td><td>&#160;&#160;&#160;<a class="el" href="Pixel_8h.html#a6b1b53ddfa5d38f58be872ad6e4aea82">RGBA2Pixel</a>(red, green, blue, 0)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -137,7 +265,7 @@ Macros</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Integer that represents a specific pixel color without alpha opacity </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>integer that represents a specific pixel color without alpha opacity </dd></dl>
 
 </div>
 </div>
@@ -174,7 +302,7 @@ Macros</h2></td></tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td>&#160;&#160;&#160;(((((red) &lt;&lt; 8 ) | (green) ) &lt;&lt; 8 | (blue) &gt;&gt; 8) | (alpha))</td>
+          <td></td><td>&#160;&#160;&#160;((((((red) &lt;&lt; 24)) | ((green) &lt;&lt; 16)) | ((blue) &lt;&lt; 8)) | ((alpha) &lt;&lt; 0))</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -189,7 +317,7 @@ Macros</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Integer that represents a specific pixel color with alpha opacity </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>integer that represents a specific pixel color with alpha opacity </dd></dl>
 
 </div>
 </div>
