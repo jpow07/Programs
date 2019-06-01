@@ -1,0 +1,73 @@
+.TH "Pixel.h" 3 "Fri May 31 2019" "Image Library" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+Pixel.h \- Define Pixel Object\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBPixel\fP   unsigned int"
+.br
+.RI "Pixel is a macro definition for unsigned int\&. "
+.ti -1c
+.RI "#define \fBRGBA2Pixel\fP(red,  green,  blue,  alpha)   (((((red) << 8 ) | (green) ) << 8 | (blue) >> 8) | (alpha))"
+.br
+.RI "A macro that returns and integer from RGBA values\&. "
+.ti -1c
+.RI "#define \fBRGB2Pixel\fP(red,  green,  blue)   (0 | ( ( ( ( (red) << 8 ) | (green) ) << 8 | (blue) ) ) )"
+.br
+.RI "A macro that returns and integer from RGB values\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Pixel is an unsigned int that stores individual values as a single value This also contains macros for manipulating elementary data types and treating them as Pixel data types\&. 
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define Pixel   unsigned int"
+
+.SS "#define RGB2Pixel(red, green, blue)   (0 | ( ( ( ( (red) << 8 ) | (green) ) << 8 | (blue) ) ) )"
+
+.PP
+\fBParameters:\fP
+.RS 4
+\fIred\fP is the red color value 
+.br
+\fIgreen\fP is the green color value 
+.br
+\fIblue\fP is the blue color value 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Integer that represents a specific pixel color without alpha opacity 
+.RE
+.PP
+
+.SS "#define RGBA2Pixel(red, green, blue, alpha)   (((((red) << 8 ) | (green) ) << 8 | (blue) >> 8) | (alpha))"
+
+.PP
+\fBParameters:\fP
+.RS 4
+\fIred\fP is the red color value 
+.br
+\fIgreen\fP is the green color value 
+.br
+\fIblue\fP is the blue color value 
+.br
+\fIalpha\fP is the alpha opacity value
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Integer that represents a specific pixel color with alpha opacity 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Image Library from the source code\&.
