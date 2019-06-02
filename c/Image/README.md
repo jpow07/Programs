@@ -1,5 +1,6 @@
 #Image Manipulation Program
 
+####I Realize this README is incomplete. I only added this to remind me to update it later once I have a better working product
 
 # Installation Instructions
 
