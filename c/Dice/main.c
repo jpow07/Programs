@@ -47,6 +47,24 @@ void print_msg(GtkWidget *widget, gpointer window) {
 
 int main(int argc, char *argv[]) {
 
+	int numberOfDice  = atoi(argv[1]);
+	int numberOfFaces = atoi(argv[2]);
+	int diceSum = 0;
+	srand(time(NULL) * time(NULL));
+	for(int i = 0; i < numberOfDice; i++) {
+
+		int diceValue = rand() % numberOfFaces;
+		COLORTEXT(50 +rand() % 180, 50 + rand() % 180, 50 + rand() % 180 );
+		printf("Dice %d:\t\t%d\n", i + 1, diceValue);	
+		DEFAULTCOLOR;
+		diceSum += diceValue;	
+	}
+
+	COLORTEXT(rand() % 255, rand() % 255, rand() % 255 );
+	printf("\nDice Total:\t%d\n", diceSum);
+	DEFAULTCOLOR;
+
+
 	GtkWidget *window;
 
 	gtk_init(&argc, &argv);
