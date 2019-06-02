@@ -10,9 +10,12 @@ add_subdirectory(src)
 add_subdirectory(src/core)
 add_subdirectory(include)
 
+target_include_directories(core PUBLIC include)
+
 #configure_file(
 #	"${PROJECT_SOURCE_DIR}/include/Version.h.in"
 #	"${PROJECT_SOURCE_DIR}/include/Version.h"
 #	)
 
-add_executable(image.out src/core/main.c)
+add_executable(image.out src/main.c)
+target_link_libraries(image.out PUBLIC core)
