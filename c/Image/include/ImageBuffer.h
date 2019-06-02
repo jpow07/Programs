@@ -11,9 +11,8 @@
 */
 
 #include "Pixel.h"
-#include "ImageBufferMacros.h"
 
-//#define ImageBufferSize 1920 * 1080
+#define ImageBufferSize 1920 * 1080
 
 typedef struct ImageBuffer {
 
