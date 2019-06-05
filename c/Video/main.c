@@ -9,7 +9,7 @@ void generateBitmapImage(unsigned char *image, int height, int width, char* imag
 unsigned char* createBitmapFileHeader(int height, int width, int paddingSize);
 unsigned char* createBitmapInfoHeader(int height, int width);
 
-#define RGBA_Pixel(r,g,b,a) (((( (r) << 8 ) | (g) ) << 8 | (b) >> 8) | (a))
+#define RGBA_Pixel(r,g,b,a) (((( (r) << 24 ) | (g) ) << 16 | (b) << 8) | (a))
 #define RGB_Pixel(r,g,b) (0 | ( ( ( ( (r) << 8 ) | (g) ) << 8 | (b) ) ) )	
 
 int main(){
@@ -25,7 +25,7 @@ int main(){
     int i, j;
     for(i = 0; i < height; i++){
         for(j = 0; j < width; j++){
-		image[i][j] = RGB_Pixel(255, 105, 0);
+		image[i][j] = RGB_Pixel(0, 0, 255);
         }
     }
 
