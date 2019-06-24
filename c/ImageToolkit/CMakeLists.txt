@@ -7,9 +7,7 @@ set (ImageToolkit_VERSION_PATCH 0)
 set (ImageToolkit_VERSION_TWEAK 0)
 
 add_subdirectory(src)
-add_subdirectory(src/core)
 add_subdirectory(include)
-add_subdirectory(include/core)
 
 target_include_directories(core PUBLIC include)
 

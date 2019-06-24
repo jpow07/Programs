@@ -1,3 +1,3 @@
 project(Image)
 
-include_directories(${Image_SOURCE_DIR}/include)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/core)

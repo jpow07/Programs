@@ -1,4 +1,4 @@
 project(ImageToolkit)
 
-include_directories(${Image_SOURCE_DIR}/src)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/core)
 
